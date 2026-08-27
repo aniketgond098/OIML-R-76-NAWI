@@ -4,7 +4,7 @@ A full-stack, production-grade legal metrology software platform for testing and
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 - **Strict Metrology Traceability**: Every formula, error calculation, and acceptance tolerance maps directly to verified clauses in OIML R 76-1:2006.
 - **Three-State Compliance Engine**: Strict `PASS` / `FAIL` / `NOT_EVALUATED` state machine preventing false certification.
@@ -24,7 +24,7 @@ A full-stack, production-grade legal metrology software platform for testing and
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - [OIML R-76 Traceability Matrix](docs/OIML-R76-TRACEABILITY.md)
 - [System Architecture](docs/architecture.md)
