@@ -35,13 +35,13 @@ export const AuditLogView: React.FC = () => {
   };
 
   return (
-    <div id="audit-trail-view" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="audit-trail-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <History size={22} className="text-indigo-600" />
-            Append-Only Metrological Audit Trail
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <History size={22} className="text-indigo-600 shrink-0" />
+            <span>Append-Only Metrological Audit Trail</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Immutable log of all user actions, observation changes, approvals, and report generations
@@ -50,7 +50,7 @@ export const AuditLogView: React.FC = () => {
       </div>
 
       {/* Filter & Search */}
-      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         <div className="relative w-full md:w-80">
           <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -62,7 +62,7 @@ export const AuditLogView: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
           <span className="text-xs text-slate-500 font-medium shrink-0">Action:</span>
           {['ALL', 'INSTRUMENT_CREATED', 'TEST_SESSION_CREATED', 'OBSERVATION_RECORDED', 'TEST_SUBMITTED_FOR_REVIEW', 'TEST_APPROVED', 'REPORT_GENERATED'].map((act) => (
             <button
@@ -83,7 +83,7 @@ export const AuditLogView: React.FC = () => {
       {/* Audit Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[680px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
                 <th className="p-3.5 pl-5">Timestamp</th>

@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { db } from '../../services/storage/database';
-import { Scale, ShieldCheck, UserCheck, ChevronDown, LogOut, CheckCircle2, User, Key } from 'lucide-react';
+import { Scale, ShieldCheck, ChevronDown, CheckCircle2, Key, Menu, X } from 'lucide-react';
 import { UserRole } from '../../types/user';
 
 interface Props {
   onOpenLoginModal: () => void;
+  isMobileSidebarOpen?: boolean;
+  onToggleMobileSidebar?: () => void;
 }
 
-export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
+export const Navbar: React.FC<Props> = ({
+  onOpenLoginModal,
+  isMobileSidebarOpen = false,
+  onToggleMobileSidebar,
+}) => {
   const { currentUser, availableUsers, switchUser, switchRole } = useAuth();
   const lab = db.getLaboratory('LAB-IND-001');
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -28,33 +34,45 @@ export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
   return (
     <header
       id="main-navbar"
-      className="w-full shrink-0 h-16 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between z-30 shadow-2xs"
+      className="w-full shrink-0 h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between z-30 shadow-2xs"
     >
-      {/* Brand & Metrology Title */}
-      <div className="flex items-center gap-3.5">
-        <div className="w-10 h-10 rounded-lg bg-indigo-900 text-white flex items-center justify-center shadow-xs">
-          <Scale size={22} className="text-indigo-200" />
+      {/* Brand & Metrology Title + Mobile Menu Toggle */}
+      <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+        {/* Mobile Hamburger Toggle Button */}
+        {onToggleMobileSidebar && (
+          <button
+            id="mobile-nav-toggle-btn"
+            onClick={onToggleMobileSidebar}
+            aria-label={isMobileSidebarOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {isMobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        )}
+
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-900 text-white flex items-center justify-center shadow-xs shrink-0">
+          <Scale size={20} className="text-indigo-200" />
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold text-slate-900 leading-none tracking-tight">
-              NAWI Test Report System
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-none tracking-tight truncate">
+              NAWI Test Report
             </h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
-              OIML R 76-1:2006
+            <span className="text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider shrink-0">
+              OIML R 76
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5 truncate max-w-md">
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 flex items-center gap-1.5 truncate max-w-[200px] sm:max-w-md">
             <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
-            <span className="truncate">{lab?.name} ({lab?.accreditationNumber})</span>
+            <span className="truncate">{lab?.name}</span>
           </p>
         </div>
       </div>
 
       {/* Role Switcher & User Profile Controls */}
-      <div className="flex items-center gap-3">
-        {/* Quick Role Tester Pills */}
-        <div className="hidden lg:flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Quick Role Tester Pills (Desktop/Large screen only) */}
+        <div className="hidden xl:flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
           <span className="text-[11px] font-semibold text-slate-400 px-2">Role:</span>
           {(['LAB_TECHNICIAN', 'REVIEWER_OFFICER', 'ADMIN'] as UserRole[]).map((r) => (
             <button
@@ -77,10 +95,10 @@ export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
           <button
             id="user-profile-menu-btn"
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2.5 p-1.5 pl-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:p-1.5 sm:pl-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
           >
-            <div className="text-left hidden sm:block">
-              <span className="text-xs font-bold text-slate-900 block leading-tight truncate max-w-[140px]">
+            <div className="text-left hidden md:block">
+              <span className="text-xs font-bold text-slate-900 block leading-tight truncate max-w-[120px] lg:max-w-[140px]">
                 {currentUser.fullName}
               </span>
               <span
@@ -89,10 +107,10 @@ export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
                 {roleLabels[currentUser.role]}
               </span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
               {currentUser.fullName.charAt(0)}
             </div>
-            <ChevronDown size={14} className="text-slate-400" />
+            <ChevronDown size={14} className="text-slate-400 hidden sm:block" />
           </button>
 
           {showUserMenu && (
@@ -105,6 +123,35 @@ export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
                 <p className="text-xs font-bold text-slate-900">{currentUser.fullName}</p>
                 <p className="text-[11px] text-slate-500 truncate">{currentUser.email}</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">{currentUser.designation}</p>
+                <div className="mt-1.5">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${roleColors[currentUser.role]}`}>
+                    {roleLabels[currentUser.role]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Mobile Quick Role Switcher */}
+              <div className="xl:hidden px-3 py-2 border-b border-slate-100 bg-slate-50/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Quick Switch Role
+                </span>
+                <div className="grid grid-cols-1 gap-1">
+                  {(['LAB_TECHNICIAN', 'REVIEWER_OFFICER', 'ADMIN'] as UserRole[]).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => {
+                        switchRole(r);
+                        setShowUserMenu(false);
+                      }}
+                      className={`text-left px-2 py-1 rounded text-xs font-medium flex items-center justify-between ${
+                        currentUser.role === r ? 'bg-indigo-100 text-indigo-900 font-semibold' : 'text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>{roleLabels[r]}</span>
+                      {currentUser.role === r && <CheckCircle2 size={13} className="text-indigo-600" />}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="px-2 py-1.5">

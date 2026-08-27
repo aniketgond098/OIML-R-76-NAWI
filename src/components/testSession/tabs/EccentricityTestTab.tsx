@@ -98,7 +98,7 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
   return (
     <div id="eccentricity-test-tab" className="space-y-6">
       {/* Clause Reference Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200">
         <div>
           <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
             Clause 3.6.2 & A.4.7: Eccentric Loading Test
@@ -112,7 +112,7 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
           <button
             id="btn-populate-eccentricity-positions"
             onClick={handlePopulateStandardPositions}
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-xs shadow-2xs transition-colors"
+            className="inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg text-xs shadow-2xs transition-colors self-start sm:self-auto"
           >
             <Plus size={14} /> + Generate 5 Standard Positions
           </button>
@@ -121,7 +121,7 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
 
       {/* Visual Platform Schematic & Position Map */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 bg-white p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col items-center justify-center text-center">
+        <div className="md:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col items-center justify-center text-center">
           <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-1.5">
             <LayoutGrid size={14} /> Platform Position Map
           </h5>
@@ -162,7 +162,7 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
         {/* Positions Table */}
         <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-xs min-w-[680px]">
               <thead>
                 <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
                   <th className="p-3 pl-4">Pos #</th>

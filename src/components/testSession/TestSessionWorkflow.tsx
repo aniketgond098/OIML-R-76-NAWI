@@ -98,9 +98,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
   const matchedReport = existingReports.find((r) => r.testSessionId === session.id);
 
   return (
-    <div id="test-session-workflow" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="test-session-workflow" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold"
@@ -108,7 +108,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
           <ArrowLeft size={16} /> Back to Sessions
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {saveToast && (
             <span className="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 font-semibold animate-in fade-in">
               ✓ Observations Saved
@@ -120,7 +120,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             <button
               id="btn-submit-for-review"
               onClick={handleSubmitForReview}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
             >
               <Send size={14} />
               Submit For Review
@@ -132,7 +132,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               id="btn-approve-and-seal"
               onClick={handleApproveAndGenerateReport}
               disabled={isFinalizing}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               <FileCheck size={15} />
               {isFinalizing ? 'Sealing Report...' : 'Approve & Seal Official Report'}
@@ -143,7 +143,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             <button
               id="btn-view-generated-report"
               onClick={() => onViewReport(matchedReport.id)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
             >
               <FileCheck size={15} />
               View Sealed Report
@@ -153,31 +153,31 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
       </div>
 
       {/* Session Metadata Banner */}
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded shrink-0">
                 {session.testSessionNumber}
               </span>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900 truncate">
                 {inst.manufacturer} {inst.model}
               </h2>
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                 Class {inst.accuracyClass.replace('CLASS_', '')}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-3">
+            <div className="text-xs text-slate-500 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
               <span>Serial No: <strong className="text-slate-800 font-mono">{inst.serialNumber}</strong></span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Standard: <strong className="text-slate-800 font-mono">{session.standardEdition}</strong></span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span>Technician: <strong className="text-slate-800">{session.technicianName}</strong></span>
-            </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-right">
+          <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 justify-between sm:justify-end">
+            <div className="text-left sm:text-right">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Session State</span>
               <StatusBadge status={session.status} size="md" />
             </div>
@@ -189,7 +189,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="flex items-center gap-1 border-t border-slate-100 pt-4 overflow-x-auto">
+        <div className="flex items-center gap-1 border-t border-slate-100 pt-3 overflow-x-auto pb-1">
           {[
             { id: 'weighing', label: '1. Weighing Performance', icon: Scale, count: session.weighingObservations?.length || 0 },
             { id: 'repeatability', label: '2. Repeatability (ΔI)', icon: Activity, count: session.repeatabilitySeries?.length || 0 },

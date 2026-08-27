@@ -50,13 +50,13 @@ export const TestSessionList: React.FC<Props> = ({
   });
 
   return (
-    <div id="test-session-list-view" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="test-session-list-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <ClipboardCheck size={22} className="text-indigo-600" />
-            NAWI Verification Test Sessions
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <ClipboardCheck size={22} className="text-indigo-600 shrink-0" />
+            <span>NAWI Verification Test Sessions</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Physical laboratory test observation sessions and legal compliance records
@@ -67,7 +67,7 @@ export const TestSessionList: React.FC<Props> = ({
           <button
             id="btn-create-test-session"
             onClick={onOpenNewTestModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors self-start sm:self-auto"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors self-start sm:self-auto"
           >
             <Plus size={16} />
             Start New Test Session
@@ -76,7 +76,7 @@ export const TestSessionList: React.FC<Props> = ({
       </div>
 
       {/* Filter and Search */}
-      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         <div className="relative w-full md:w-80">
           <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -88,8 +88,8 @@ export const TestSessionList: React.FC<Props> = ({
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
-          <Filter size={14} className="text-slate-400 shrink-0" />
+        <div className="flex items-center gap-1.5 sm:gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+          <Filter size={14} className="text-slate-400 shrink-0 hidden sm:inline" />
           <span className="text-xs text-slate-500 font-medium shrink-0">Status:</span>
           {['ALL', 'IN_PROGRESS', 'UNDER_REVIEW', 'APPROVED', 'REPORT_GENERATED'].map((st) => (
             <button
@@ -120,7 +120,7 @@ export const TestSessionList: React.FC<Props> = ({
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-xs min-w-[700px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
                   <th className="p-3.5 pl-5">Session #</th>

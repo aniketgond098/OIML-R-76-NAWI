@@ -17,13 +17,13 @@ export const EquipmentRegistry: React.FC = () => {
   );
 
   return (
-    <div id="equipment-registry-view" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="equipment-registry-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Wrench size={22} className="text-indigo-600" />
-            Metrological Equipment & Standard Weights Registry
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Wrench size={22} className="text-indigo-600 shrink-0" />
+            <span>Metrological Equipment & Standard Weights Registry</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Traceable OIML R 111 Class E2, F1, F2 reference test weights and environmental loggers
@@ -33,8 +33,8 @@ export const EquipmentRegistry: React.FC = () => {
 
       {/* Equipment Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="relative w-72">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="relative w-full sm:w-72">
             <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
@@ -44,11 +44,11 @@ export const EquipmentRegistry: React.FC = () => {
               className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
             />
           </div>
-          <span className="text-xs text-slate-500 font-mono">{equipmentList.length} Active Standards</span>
+          <span className="text-xs text-slate-500 font-mono self-end sm:self-auto">{equipmentList.length} Active Standards</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full text-left border-collapse text-xs min-w-[640px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
                 <th className="p-3.5 pl-5">Equipment Tag & Name</th>

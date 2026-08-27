@@ -147,12 +147,12 @@ export const ZeroTareTestTab: React.FC<Props> = ({
   }).explanation;
 
   return (
-    <div id="zero-tare-test-tab" className="space-y-8">
+    <div id="zero-tare-test-tab" className="space-y-6 sm:space-y-8">
       {/* 1. ZERO SETTING & ZERO TRACKING TEST */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Sliders size={18} className="text-indigo-600" />
+        <div className="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start sm:items-center gap-3">
+            <Sliders size={18} className="text-indigo-600 shrink-0 mt-0.5 sm:mt-0" />
             <div>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 Clause 4.5.2 & A.4.2: Zero-Setting & Zero-Tracking Accuracy (|E0| ≤ 0.25e)
@@ -162,7 +162,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             <ComplianceBadge status={zeroObs.compliance} />
             <button
               onClick={() => setSelectedExplanation(zeroExplanation)}
@@ -173,7 +173,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Zero Device Type
@@ -242,7 +242,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
 
       {/* 2. TARE DEVICE ACCURACY & NET WEIGHING TEST */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Clause 4.6 & A.4.6: Tare Setting Accuracy (|Etare| ≤ 0.25e) & Net Weighing
@@ -251,7 +251,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
               Accuracy of tare setting shall be evaluated within ± 0.25e, and subsequent net load errors within MPE.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             <ComplianceBadge status={tareObs.compliance} />
             <button
               onClick={() => setSelectedExplanation(tareExplanation)}
@@ -262,9 +262,9 @@ export const ZeroTareTestTab: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           {/* Tare Load Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Tare Load Applied (T)
@@ -332,72 +332,74 @@ export const ZeroTareTestTab: React.FC<Props> = ({
             <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
               Net Load Verification Points
             </h5>
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
-                  <th className="p-2.5">Net Load</th>
-                  <th className="p-2.5">Indicated Net</th>
-                  <th className="p-2.5">ΔL</th>
-                  <th className="p-2.5">Corrected Error (Ec)</th>
-                  <th className="p-2.5">MPE Limit</th>
-                  <th className="p-2.5 pr-4 text-right">Compliance</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-mono text-xs">
-                {tareObs.netTestPoints.map((pt, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50">
-                    <td className="p-2.5">
-                      {isReadOnly ? (
-                        <span>{pt.nominalNetLoad} {inst.unit}</span>
-                      ) : (
-                        <input
-                          type="number"
-                          step="any"
-                          value={pt.nominalNetLoad}
-                          onChange={(e) => handleNetPointChange(idx, 'nominalNetLoad', parseFloat(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
-                        />
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      {isReadOnly ? (
-                        <span>{pt.indicatedNet} {inst.unit}</span>
-                      ) : (
-                        <input
-                          type="number"
-                          step="any"
-                          value={pt.indicatedNet}
-                          onChange={(e) => handleNetPointChange(idx, 'indicatedNet', parseFloat(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
-                        />
-                      )}
-                    </td>
-                    <td className="p-2.5">
-                      {isReadOnly ? (
-                        <span>{pt.turningPointDeltaL ?? '-'}</span>
-                      ) : (
-                        <input
-                          type="number"
-                          step="any"
-                          value={pt.turningPointDeltaL ?? ''}
-                          onChange={(e) => handleNetPointChange(idx, 'turningPointDeltaL', parseFloat(e.target.value) || 0)}
-                          className="w-20 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
-                        />
-                      )}
-                    </td>
-                    <td className="p-2.5 font-bold">
-                      {pt.correctedNetErrorEc !== undefined ? `${pt.correctedNetErrorEc.toFixed(4)} ${inst.unit}` : '-'}
-                    </td>
-                    <td className="p-2.5 text-slate-600">
-                      {pt.mpeInUnit !== undefined ? `±${pt.mpeInUnit.toFixed(4)} ${inst.unit}` : '-'}
-                    </td>
-                    <td className="p-2.5 pr-4 text-right">
-                      <ComplianceBadge status={pt.compliance} size="sm" />
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs min-w-[620px]">
+                <thead>
+                  <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
+                    <th className="p-2.5">Net Load</th>
+                    <th className="p-2.5">Indicated Net</th>
+                    <th className="p-2.5">ΔL</th>
+                    <th className="p-2.5">Corrected Error (Ec)</th>
+                    <th className="p-2.5">MPE Limit</th>
+                    <th className="p-2.5 pr-4 text-right">Compliance</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-mono text-xs">
+                  {tareObs.netTestPoints.map((pt, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50">
+                      <td className="p-2.5">
+                        {isReadOnly ? (
+                          <span>{pt.nominalNetLoad} {inst.unit}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            step="any"
+                            value={pt.nominalNetLoad}
+                            onChange={(e) => handleNetPointChange(idx, 'nominalNetLoad', parseFloat(e.target.value) || 0)}
+                            className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                          />
+                        )}
+                      </td>
+                      <td className="p-2.5">
+                        {isReadOnly ? (
+                          <span>{pt.indicatedNet} {inst.unit}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            step="any"
+                            value={pt.indicatedNet}
+                            onChange={(e) => handleNetPointChange(idx, 'indicatedNet', parseFloat(e.target.value) || 0)}
+                            className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                          />
+                        )}
+                      </td>
+                      <td className="p-2.5">
+                        {isReadOnly ? (
+                          <span>{pt.turningPointDeltaL ?? '-'}</span>
+                        ) : (
+                          <input
+                            type="number"
+                            step="any"
+                            value={pt.turningPointDeltaL ?? ''}
+                            onChange={(e) => handleNetPointChange(idx, 'turningPointDeltaL', parseFloat(e.target.value) || 0)}
+                            className="w-20 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                          />
+                        )}
+                      </td>
+                      <td className="p-2.5 font-bold">
+                        {pt.correctedNetErrorEc !== undefined ? `${pt.correctedNetErrorEc.toFixed(4)} ${inst.unit}` : '-'}
+                      </td>
+                      <td className="p-2.5 text-slate-600">
+                        {pt.mpeInUnit !== undefined ? `±${pt.mpeInUnit.toFixed(4)} ${inst.unit}` : '-'}
+                      </td>
+                      <td className="p-2.5 pr-4 text-right">
+                        <ComplianceBadge status={pt.compliance} size="sm" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>

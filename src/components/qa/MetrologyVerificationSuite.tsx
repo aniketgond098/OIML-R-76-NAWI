@@ -179,13 +179,13 @@ export const MetrologyVerificationSuite: React.FC = () => {
   };
 
   return (
-    <div id="metrology-qa-suite" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="metrology-qa-suite" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <ShieldCheck size={22} className="text-emerald-600" />
-            OIML R 76-1:2006 Metrological Engine Verification Suite
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <ShieldCheck size={22} className="text-emerald-600 shrink-0" />
+            <span>OIML R 76-1:2006 Metrological Engine Verification Suite</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Automated formal arithmetic test harness executing mathematical assertions against OIML standard clauses
@@ -196,7 +196,7 @@ export const MetrologyVerificationSuite: React.FC = () => {
           id="btn-run-all-qa-tests"
           onClick={runAllVerificationTests}
           disabled={isRunning}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-2xs transition-colors disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-2xs transition-colors disabled:opacity-50 shrink-0"
         >
           {isRunning ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
           Execute All Verification Test Cases
@@ -205,26 +205,26 @@ export const MetrologyVerificationSuite: React.FC = () => {
 
       {/* Summary Card */}
       {results.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+          <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-[11px] font-bold text-slate-500 uppercase">Total Test Cases</span>
-            <div className="text-2xl font-bold text-slate-900 mt-1">{results.length}</div>
+            <div className="text-xl sm:text-2xl font-bold text-slate-900 mt-1">{results.length}</div>
           </div>
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+          <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-[11px] font-bold text-emerald-600 uppercase">Passed</span>
-            <div className="text-2xl font-bold text-emerald-700 mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">
               {results.filter((r) => r.passed).length}
             </div>
           </div>
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+          <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-[11px] font-bold text-rose-600 uppercase">Failed</span>
-            <div className="text-2xl font-bold text-rose-700 mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-rose-700 mt-1">
               {results.filter((r) => !r.passed).length}
             </div>
           </div>
-          <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+          <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <span className="text-[11px] font-bold text-indigo-600 uppercase">Compliance Pass Rate</span>
-            <div className="text-2xl font-bold text-indigo-700 mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-indigo-700 mt-1">
               {((results.filter((r) => r.passed).length / results.length) * 100).toFixed(0)}%
             </div>
           </div>
@@ -233,50 +233,52 @@ export const MetrologyVerificationSuite: React.FC = () => {
 
       {/* Results Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
-              <th className="p-3 pl-4">Test Case ID</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Governing Clause</th>
-              <th className="p-3">Assertion Specification</th>
-              <th className="p-3">Expected Result</th>
-              <th className="p-3">Engine Output</th>
-              <th className="p-3 pr-4 text-right">Verification</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 font-mono text-xs">
-            {results.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="p-8 text-center text-slate-400 font-sans text-xs">
-                  Click "Execute All Verification Test Cases" above to validate the metrology engine.
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs min-w-[760px]">
+            <thead>
+              <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
+                <th className="p-3 pl-4">Test Case ID</th>
+                <th className="p-3">Category</th>
+                <th className="p-3">Governing Clause</th>
+                <th className="p-3">Assertion Specification</th>
+                <th className="p-3">Expected Result</th>
+                <th className="p-3">Engine Output</th>
+                <th className="p-3 pr-4 text-right">Verification</th>
               </tr>
-            ) : (
-              results.map((tc) => (
-                <tr key={tc.id} className="hover:bg-slate-50">
-                  <td className="p-3 pl-4 font-bold text-indigo-700 font-sans">{tc.id}</td>
-                  <td className="p-3 font-sans text-slate-600">{tc.category}</td>
-                  <td className="p-3 font-mono text-slate-500 text-[11px]">{tc.clause}</td>
-                  <td className="p-3 font-sans font-semibold text-slate-900">{tc.name}</td>
-                  <td className="p-3 text-slate-600">{tc.expected}</td>
-                  <td className="p-3 font-bold text-slate-800">{tc.actual}</td>
-                  <td className="p-3 pr-4 text-right font-sans">
-                    {tc.passed ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold text-[11px] border border-emerald-200">
-                        <CheckCircle2 size={13} /> PASS
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded font-bold text-[11px] border border-rose-200">
-                        <XCircle size={13} /> FAIL
-                      </span>
-                    )}
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-mono text-xs">
+              {results.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-slate-400 font-sans text-xs">
+                    Click "Execute All Verification Test Cases" above to validate the metrology engine.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                results.map((tc) => (
+                  <tr key={tc.id} className="hover:bg-slate-50">
+                    <td className="p-3 pl-4 font-bold text-indigo-700 font-sans">{tc.id}</td>
+                    <td className="p-3 font-sans text-slate-600">{tc.category}</td>
+                    <td className="p-3 font-mono text-slate-500 text-[11px]">{tc.clause}</td>
+                    <td className="p-3 font-sans font-semibold text-slate-900">{tc.name}</td>
+                    <td className="p-3 text-slate-600">{tc.expected}</td>
+                    <td className="p-3 font-bold text-slate-800">{tc.actual}</td>
+                    <td className="p-3 pr-4 text-right font-sans">
+                      {tc.passed ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold text-[11px] border border-emerald-200">
+                          <CheckCircle2 size={13} /> PASS
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded font-bold text-[11px] border border-rose-200">
+                          <XCircle size={13} /> FAIL
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

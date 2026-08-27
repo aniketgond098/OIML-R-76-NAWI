@@ -72,13 +72,13 @@ export const DashboardView: React.FC<Props> = ({
   const recentReports = reports.slice(0, 4);
 
   return (
-    <div id="dashboard-view" className="p-6 space-y-6 max-w-7xl">
+    <div id="dashboard-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 lg:p-6 rounded-xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 lg:p-6 rounded-xl border border-slate-200 shadow-2xs">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Legal Metrology Control Center</h2>
-            <span className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-md">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Legal Metrology Control Center</h2>
+            <span className="text-[10px] sm:text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200 rounded-md shrink-0">
               ISO/IEC 17025 Compliant
             </span>
           </div>
@@ -87,12 +87,12 @@ export const DashboardView: React.FC<Props> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {canCreateInstrument && (
             <button
               id="dashboard-new-inst-btn"
               onClick={onNavigateToNewInstrument}
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors flex-1 sm:flex-initial"
             >
               <Plus size={15} />
               Register Instrument
@@ -101,7 +101,7 @@ export const DashboardView: React.FC<Props> = ({
           <button
             id="dashboard-all-tests-btn"
             onClick={onNavigateToTestSessions}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition-colors border border-slate-200"
+            className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition-colors border border-slate-200 flex-1 sm:flex-initial"
           >
             <ClipboardCheck size={15} />
             Test Sessions
@@ -110,10 +110,10 @@ export const DashboardView: React.FC<Props> = ({
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div
           onClick={onNavigateToInstruments}
-          className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-indigo-300 transition-all cursor-pointer group"
+          className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-indigo-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Total Instruments</span>
@@ -129,7 +129,7 @@ export const DashboardView: React.FC<Props> = ({
 
         <div
           onClick={onNavigateToTestSessions}
-          className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-blue-300 transition-all cursor-pointer group"
+          className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-blue-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">In-Progress Testing</span>
@@ -145,7 +145,7 @@ export const DashboardView: React.FC<Props> = ({
 
         <div
           onClick={onNavigateToTestSessions}
-          className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-purple-300 transition-all cursor-pointer group"
+          className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-purple-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Pending Review</span>
@@ -161,7 +161,7 @@ export const DashboardView: React.FC<Props> = ({
 
         <div
           onClick={onNavigateToReports}
-          className="p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-emerald-300 transition-all cursor-pointer group"
+          className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-2xs hover:border-emerald-300 transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Reports Sealed</span>
@@ -177,10 +177,10 @@ export const DashboardView: React.FC<Props> = ({
       </div>
 
       {/* Compliance & Workflow Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left 2 Cols: Testing Lifecycle & Status */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Laboratory Test Sessions by Workflow Stage</h3>
               <p className="text-xs text-slate-500">Live operational distribution across lab testing pipeline</p>
@@ -208,7 +208,7 @@ export const DashboardView: React.FC<Props> = ({
         </div>
 
         {/* Right 1 Col: Compliance Breakdown */}
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
+        <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4 flex flex-col justify-between">
           <div>
             <h3 className="text-sm font-bold text-slate-900">Three-State Compliance</h3>
             <p className="text-xs text-slate-500">Rigorous OIML R-76 evaluation</p>
@@ -253,10 +253,10 @@ export const DashboardView: React.FC<Props> = ({
       </div>
 
       {/* Two Column Section: Recent Test Sessions & Recent Finalized Reports */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Test Sessions */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ClipboardCheck size={18} className="text-indigo-600" />
               <h3 className="text-sm font-bold text-slate-900">Recent Test Sessions</h3>
@@ -277,23 +277,23 @@ export const DashboardView: React.FC<Props> = ({
                 <div
                   key={session.id}
                   onClick={() => onSelectTestSession(session.id)}
-                  className="p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between cursor-pointer group"
+                  className="p-3.5 sm:p-4 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 cursor-pointer group"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                         {session.testSessionNumber}
                       </span>
                       <StatusBadge status={session.status} size="sm" />
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 truncate">
                       {session.instrumentSnapshot.manufacturer} {session.instrumentSnapshot.model} (SN: {session.instrumentSnapshot.serialNumber})
                     </p>
                     <p className="text-[11px] text-slate-400">
                       Tech: {session.technicianName} | {new Date(session.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="text-right flex items-center gap-3">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                     <ComplianceBadge status={session.overallCompliance} size="sm" />
                     <ArrowRight size={15} className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
                   </div>
@@ -305,7 +305,7 @@ export const DashboardView: React.FC<Props> = ({
 
         {/* Recent Finalized Reports */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText size={18} className="text-emerald-600" />
               <h3 className="text-sm font-bold text-slate-900">Sealed Test Reports</h3>
@@ -325,13 +325,13 @@ export const DashboardView: React.FC<Props> = ({
               recentReports.map((rpt) => (
                 <div
                   key={rpt.id}
-                  className="p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between"
+                  className="p-3.5 sm:p-4 hover:bg-slate-50/80 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                 >
                   <div
                     onClick={() => onSelectReport(rpt.id)}
-                    className="space-y-1 cursor-pointer flex-1 group"
+                    className="space-y-1 cursor-pointer flex-1 group min-w-0"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
                         {rpt.reportNumber}
                       </span>
@@ -340,7 +340,7 @@ export const DashboardView: React.FC<Props> = ({
                       </span>
                       <ComplianceBadge status={rpt.overallCompliance} size="sm" />
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 truncate">
                       {rpt.instrumentSnapshot.manufacturer} {rpt.instrumentSnapshot.model}
                     </p>
                     <p className="text-[11px] text-slate-400">
@@ -348,7 +348,7 @@ export const DashboardView: React.FC<Props> = ({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 pl-3">
+                  <div className="flex items-center justify-end gap-2 shrink-0">
                     <button
                       onClick={() => generateTestReportPDF(rpt, lab)}
                       title="Download Official PDF Report"

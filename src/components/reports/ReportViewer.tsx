@@ -48,9 +48,9 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
   };
 
   return (
-    <div id="report-viewer-container" className="p-8 space-y-6 max-w-5xl mx-auto">
+    <div id="report-viewer-container" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-5xl mx-auto">
       {/* Top Bar Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <button
           onClick={onBack}
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold"
@@ -58,16 +58,16 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
           <ArrowLeft size={16} /> Back to Archive
         </button>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <button
             onClick={() => generateTestReportDOCX(report, lab)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 shadow-2xs transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold rounded-lg border border-slate-300 shadow-2xs transition-colors"
           >
             <Download size={14} /> Export Word (.DOCX)
           </button>
           <button
             onClick={() => generateTestReportPDF(report, lab)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors"
           >
             <Download size={14} /> Download Official PDF
           </button>
@@ -77,13 +77,13 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
       {/* Official Report Document Paper Canvas */}
       <div className="bg-white rounded-xl border border-slate-300 shadow-xl overflow-hidden print:border-none print:shadow-none">
         {/* Document Header Header */}
-        <div className="p-8 bg-slate-900 text-white space-y-4">
+        <div className="p-4 sm:p-6 md:p-8 bg-slate-900 text-white space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
               <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest block">
                 {lab.name}
               </span>
-              <h1 className="text-xl font-bold text-slate-100 tracking-tight mt-0.5">
+              <h1 className="text-base sm:text-xl font-bold text-slate-100 tracking-tight mt-0.5">
                 LEGAL METROLOGY NAWI VERIFICATION REPORT
               </h1>
               <p className="text-xs text-slate-400 mt-1">
@@ -109,13 +109,13 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
         </div>
 
         {/* Document Body */}
-        <div className="p-8 space-y-8 text-xs text-slate-800">
+        <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 text-xs text-slate-800">
           {/* Section 1: Instrument Under Test */}
           <div>
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 mb-3">
               1. Instrument Under Test (IUT) Specifications
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               <div className="p-2.5 bg-slate-50 rounded border border-slate-200">
                 <span className="text-slate-500 block text-[11px]">Manufacturer & Model:</span>
                 <span className="font-bold text-slate-900">{inst.manufacturer} {inst.model}</span>
@@ -149,46 +149,48 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
               2. Weighing Performance Test Results (Clause 3.5.1)
             </h3>
             <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
-                    <th className="p-2.5 pl-4">#</th>
-                    <th className="p-2.5">Dir</th>
-                    <th className="p-2.5">Load ($L$)</th>
-                    <th className="p-2.5">Indication ($I$)</th>
-                    <th className="p-2.5">$\Delta L$</th>
-                    <th className="p-2.5">Error ($E_c$)</th>
-                    <th className="p-2.5">MPE Limit</th>
-                    <th className="p-2.5 pr-4 text-right">Result</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-mono">
-                  {session.weighingObservations?.map((obs) => (
-                    <tr key={obs.testPointIndex}>
-                      <td className="p-2.5 pl-4 text-slate-500">{obs.testPointIndex}</td>
-                      <td className="p-2.5 font-sans font-medium">{obs.direction === 'ASCENDING' ? '↑ Asc' : '↓ Desc'}</td>
-                      <td className="p-2.5 font-bold text-slate-900">{obs.nominalLoad} {inst.unit}</td>
-                      <td className="p-2.5 text-slate-800">{obs.indicatedValue} {inst.unit}</td>
-                      <td className="p-2.5 text-slate-600">{obs.turningPointDeltaL ?? '-'}</td>
-                      <td className="p-2.5 font-bold">
-                        {obs.correctedErrorEc !== undefined ? (
-                          <span className={obs.compliance === 'PASS' ? 'text-emerald-700' : 'text-rose-700'}>
-                            {obs.correctedErrorEc > 0 ? `+${obs.correctedErrorEc.toFixed(4)}` : obs.correctedErrorEc.toFixed(4)}
-                          </span>
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-                      <td className="p-2.5 text-slate-600">
-                        {obs.mpeInUnit !== undefined ? `±${obs.mpeInUnit.toFixed(4)} ${inst.unit}` : `±${obs.mpeE}e`}
-                      </td>
-                      <td className="p-2.5 pr-4 text-right">
-                        <ComplianceBadge status={obs.compliance} size="sm" />
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs min-w-[620px]">
+                  <thead>
+                    <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
+                      <th className="p-2.5 pl-4">#</th>
+                      <th className="p-2.5">Dir</th>
+                      <th className="p-2.5">Load ($L$)</th>
+                      <th className="p-2.5">Indication ($I$)</th>
+                      <th className="p-2.5">$\Delta L$</th>
+                      <th className="p-2.5">Error ($E_c$)</th>
+                      <th className="p-2.5">MPE Limit</th>
+                      <th className="p-2.5 pr-4 text-right">Result</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono">
+                    {session.weighingObservations?.map((obs) => (
+                      <tr key={obs.testPointIndex}>
+                        <td className="p-2.5 pl-4 text-slate-500">{obs.testPointIndex}</td>
+                        <td className="p-2.5 font-sans font-medium">{obs.direction === 'ASCENDING' ? '↑ Asc' : '↓ Desc'}</td>
+                        <td className="p-2.5 font-bold text-slate-900">{obs.nominalLoad} {inst.unit}</td>
+                        <td className="p-2.5 text-slate-800">{obs.indicatedValue} {inst.unit}</td>
+                        <td className="p-2.5 text-slate-600">{obs.turningPointDeltaL ?? '-'}</td>
+                        <td className="p-2.5 font-bold">
+                          {obs.correctedErrorEc !== undefined ? (
+                            <span className={obs.compliance === 'PASS' ? 'text-emerald-700' : 'text-rose-700'}>
+                              {obs.correctedErrorEc > 0 ? `+${obs.correctedErrorEc.toFixed(4)}` : obs.correctedErrorEc.toFixed(4)}
+                            </span>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className="p-2.5 text-slate-600">
+                          {obs.mpeInUnit !== undefined ? `±${obs.mpeInUnit.toFixed(4)} ${inst.unit}` : `±${obs.mpeE}e`}
+                        </td>
+                        <td className="p-2.5 pr-4 text-right">
+                          <ComplianceBadge status={obs.compliance} size="sm" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

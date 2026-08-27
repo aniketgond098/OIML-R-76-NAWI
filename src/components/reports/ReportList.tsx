@@ -33,13 +33,13 @@ export const ReportList: React.FC<Props> = ({ onSelectReport }) => {
   });
 
   return (
-    <div id="reports-list-view" className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div id="reports-list-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <FileText size={22} className="text-emerald-600" />
-            Legal Metrology Reports Archive
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <FileText size={22} className="text-emerald-600 shrink-0" />
+            <span>Legal Metrology Reports Archive</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Tamper-evident, sealed test reports with SHA-256 digital integrity verification
@@ -48,7 +48,7 @@ export const ReportList: React.FC<Props> = ({ onSelectReport }) => {
       </div>
 
       {/* Filter & Search */}
-      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="p-3.5 sm:p-4 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         <div className="relative w-full md:w-80">
           <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
           <input
@@ -60,13 +60,13 @@ export const ReportList: React.FC<Props> = ({ onSelectReport }) => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-medium">Result:</span>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+          <span className="text-xs text-slate-500 font-medium shrink-0">Result:</span>
           {['ALL', 'PASS', 'FAIL', 'NOT_EVALUATED'].map((res) => (
             <button
               key={res}
               onClick={() => setResultFilter(res)}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors shrink-0 ${
                 resultFilter === res
                   ? 'bg-slate-900 text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -88,7 +88,7 @@ export const ReportList: React.FC<Props> = ({ onSelectReport }) => {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className="w-full text-left border-collapse text-xs min-w-[680px]">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[10px]">
                   <th className="p-3.5 pl-5">Report No & Rev</th>

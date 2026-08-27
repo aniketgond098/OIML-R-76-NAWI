@@ -205,7 +205,7 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                 className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden"
               >
                 {/* Series Header */}
-                <div className="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div className="p-3.5 sm:p-4 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="font-bold text-slate-900 text-sm">
                       Series {series.seriesNumber || sIdx + 1} ({series.nominalLoad} {inst.unit})
@@ -213,15 +213,15 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                     <ComplianceBadge status={series.compliance} size="sm" />
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-mono">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs font-mono">
                     <span className="text-slate-600">
                       ΔI: <strong className="text-slate-900">{series.deltaI.toFixed(4)} {inst.unit}</strong>
                     </span>
-                    <span className="text-slate-400">|</span>
+                    <span className="text-slate-400 hidden sm:inline">|</span>
                     <span className="text-slate-600">
                       MPE: <strong className="text-slate-900">±{series.mpeInUnit.toFixed(4)} {inst.unit}</strong>
                     </span>
-                    <span className="text-slate-400">|</span>
+                    <span className="text-slate-400 hidden sm:inline">|</span>
                     <button
                       onClick={() => setSelectedExplanation(explanation)}
                       className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-sans font-semibold"
@@ -233,7 +233,7 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
 
                 {/* Readings Table */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left border-collapse text-xs min-w-[580px]">
                     <thead>
                       <tr className="bg-slate-100/50 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
                         <th className="p-2.5 pl-4">Run #</th>
