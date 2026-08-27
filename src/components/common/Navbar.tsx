@@ -28,7 +28,7 @@ export const Navbar: React.FC<Props> = ({ onOpenLoginModal }) => {
   return (
     <header
       id="main-navbar"
-      className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between z-40 shadow-2xs"
+      className="w-full shrink-0 h-16 bg-white border-b border-slate-200/90 px-6 flex items-center justify-between z-30 shadow-2xs"
     >
       {/* Brand & Metrology Title */}
       <div className="flex items-center gap-3.5">
