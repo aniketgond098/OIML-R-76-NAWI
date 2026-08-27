@@ -41,17 +41,44 @@ export const CalculationModal: React.FC<Props> = ({ isOpen, onClose, explanation
         <div>
           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <Layers size={14} className="text-slate-400" />
-            Preserved Raw Observation Inputs
+            Preserved Observation Inputs & Parameters
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {Object.entries(explanation.inputs).map(([key, val]) => (
               <div key={key} className="p-2.5 bg-white border border-slate-200 rounded-md">
-                <span className="text-xs text-slate-500 block truncate">{key}</span>
-                <span className="text-sm font-semibold text-slate-900 font-mono">{String(val)}</span>
+                <span className="text-[11px] text-slate-500 block truncate">{key}</span>
+                <span className="text-xs font-semibold text-slate-900 font-mono">{String(val)}</span>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Rule Metadata & Decision Principles */}
+        {(explanation.formula || explanation.decisionRule || explanation.roundingRule) && (
+          <div className="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-lg space-y-2 text-xs">
+            <span className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider block">
+              Authoritative OIML Rule Parameters
+            </span>
+            {explanation.formula && (
+              <div>
+                <span className="text-slate-500 font-medium">Standard Formula: </span>
+                <span className="font-mono font-bold text-indigo-900">{explanation.formula}</span>
+              </div>
+            )}
+            {explanation.decisionRule && (
+              <div>
+                <span className="text-slate-500 font-medium">Decision Rule: </span>
+                <span className="font-mono text-slate-800">{explanation.decisionRule}</span>
+              </div>
+            )}
+            {explanation.roundingRule && (
+              <div>
+                <span className="text-slate-500 font-medium">Rounding Rule: </span>
+                <span className="text-slate-700">{explanation.roundingRule}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Step by Step Execution Proof */}
         <div>

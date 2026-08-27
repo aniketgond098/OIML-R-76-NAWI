@@ -39,10 +39,18 @@ export interface CalculationExplanation {
   ruleId: string;
   clauseRef: string;
   standard: string;
+  edition?: string;
+  rawObservations?: Record<string, string | number>;
   inputs: Record<string, string | number>;
+  formula?: string;
+  roundingRule?: string;
+  decisionRule?: string;
   steps: CalculationTraceStep[];
   finalResult: string;
   limitRequirement: string;
+  comparison?: string;
   compliance: ComplianceStatus;
+  verificationStatus?: VerificationStatus;
   notes?: string;
 }
+

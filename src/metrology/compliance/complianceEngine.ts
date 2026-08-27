@@ -128,6 +128,7 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
     notEvaluatedCount: number;
     summaryNotes: string;
   };
+  complianceReason: string;
   legalStatement: string;
 } {
   let passedCount = 0;
@@ -135,8 +136,12 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
   let notEvaluatedCount = 0;
   let totalApplicable = 0;
 
+  const passedModules: string[] = [];
+  const failedModules: string[] = [];
+  const notEvaluatedModules: string[] = [];
   const notes: string[] = [];
 
+  // Check each plan item
   for (const item of session.testPlan) {
     if (!item.isApplicable || item.status === 'SKIPPED') {
       continue;
@@ -146,28 +151,39 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
 
     if (item.compliance === 'PASS') {
       passedCount++;
-      notes.push(`✓ ${item.name}: PASSED`);
+      passedModules.push(item.name);
+      notes.push(`[PASS] ${item.name}`);
     } else if (item.compliance === 'FAIL') {
       failedCount++;
-      notes.push(`✗ ${item.name}: FAILED (Tolerance limit exceeded)`);
+      failedModules.push(item.name);
+      notes.push(`[FAIL] ${item.name} - Tolerance limit exceeded`);
     } else {
       notEvaluatedCount++;
-      notes.push(`○ ${item.name}: NOT EVALUATED (Incomplete data or unverified rule)`);
+      notEvaluatedModules.push(item.name);
+      notes.push(`[NOT EVALUATED] ${item.name} - Incomplete observations or missing test data`);
     }
   }
 
   let overallCompliance: ComplianceStatus = 'NOT_EVALUATED';
+  let complianceReason = '';
   let legalStatement = '';
+
+  const accuracyClassName = session.instrumentSnapshot.accuracyClass.replace('CLASS_', '');
 
   if (failedCount > 0) {
     overallCompliance = 'FAIL';
-    legalStatement = `The non-automatic weighing instrument DOES NOT COMPLY with the requirements of OIML Recommendation R 76-1:2006 (E) due to tolerance violations in ${failedCount} test module(s).`;
+    complianceReason = `Tolerance limit exceeded in: ${failedModules.join(', ')}.`;
+    legalStatement = `The non-automatic weighing instrument DOES NOT COMPLY with OIML Recommendation R 76-1:2006 (E) requirements due to tolerance violation(s) in: ${failedModules.join(', ')}. Corrective adjustment or recalibration required before legal use.`;
   } else if (notEvaluatedCount > 0 || totalApplicable === 0) {
     overallCompliance = 'NOT_EVALUATED';
-    legalStatement = `The evaluation is INCOMPLETE. ${notEvaluatedCount} applicable test module(s) remain unverified or lack complete physical observation data.`;
+    complianceReason = notEvaluatedModules.length > 0
+      ? `Required applicable tests remain unevaluated: ${notEvaluatedModules.join(', ')}.`
+      : 'No applicable tests have been recorded.';
+    legalStatement = `The legal metrology evaluation is INCOMPLETE (NOT EVALUATED). ${notEvaluatedCount} applicable test module(s) remain unevaluated. Final compliance determination cannot be established until all mandatory applicable test modules are executed.`;
   } else if (passedCount === totalApplicable) {
     overallCompliance = 'PASS';
-    legalStatement = `The non-automatic weighing instrument COMPLIES with all verified legal metrology requirements of OIML Recommendation R 76-1:2006 (E) for Accuracy ${session.instrumentSnapshot.accuracyClass.replace('_', ' ')}.`;
+    complianceReason = 'All verified applicable requirements passed within permissible limits.';
+    legalStatement = `The non-automatic weighing instrument COMPLIES with all verified legal metrology requirements of OIML Recommendation R 76-1:2006 (E) for Accuracy Class ${accuracyClassName}. All tested parameters are within the maximum permissible errors specified in Table 6.`;
   }
 
   return {
@@ -179,6 +195,7 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
       notEvaluatedCount,
       summaryNotes: notes.join('\n'),
     },
+    complianceReason,
     legalStatement,
   };
 }

@@ -200,6 +200,8 @@ export interface TestSession {
   standardEdition: StandardEdition;
   ruleSetVersion: string; // e.g. "OIML-R76-2006-v1.0"
   status: TestSessionStatus;
+  verificationType?: 'INITIAL' | 'SUBSEQUENT_IN_SERVICE';
+  isDemoData?: boolean;
   
   createdAt: string;
   startedAt?: string;

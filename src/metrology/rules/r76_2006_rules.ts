@@ -16,6 +16,12 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'MPE_TABLE_LOOKUP',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Verification scale interval', symbol: 'e', description: 'Scale interval used for classification', unit: 'g / kg' },
+      { name: 'Maximum capacity', symbol: 'Max', description: 'Maximum weighing capacity', unit: 'g / kg' },
+      { name: 'Minimum capacity', symbol: 'Min', description: 'Minimum load below which errors may be excessive', unit: 'g / kg' },
+    ],
+    formula: 'n = Max / e; Min >= k · e',
     parameters: {
       classSpecs: {
         CLASS_I: { minE_g: 0.001, minN: 50000, maxN: Infinity, minCapacityMultiplier: 100 },
@@ -30,8 +36,10 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
         CLASS_IIII: { minE_g: 5.0, minN: 100, maxN: 1000, minCapacityMultiplier: 10 },
       },
     },
-    decisionCriteria: 'Instrument parameters must satisfy boundary conditions in Table 3.',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 15',
+    units: 'dimensionless / primary mass unit',
+    rounding: 'Exact integer for interval count n; scale interval e in 1x10^k, 2x10^k, or 5x10^k units',
+    decisionRule: 'n_min <= n <= n_max and Min >= k · e according to Table 3',
+    sourceReference: 'OIML R 76-1:2006 (E) Section 3.1.2 p. 15',
   },
 
   // 2. Maximum Permissible Errors on Initial Verification (Table 6)
@@ -45,6 +53,12 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'MPE_TABLE_LOOKUP',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Nominal Load', symbol: 'L', description: 'Test load placed on the load receptor', unit: 'g / kg' },
+      { name: 'Verification scale interval', symbol: 'e', description: 'Scale interval', unit: 'g / kg' },
+      { name: 'Accuracy Class', symbol: 'Class', description: 'Accuracy class I, II, III, IIII', unit: 'category' },
+    ],
+    formula: 'm = L / e; MPE = ±0.5 e (Band 1), ±1.0 e (Band 2), ±1.5 e (Band 3)',
     parameters: {
       bands: {
         CLASS_I: [
@@ -69,8 +83,10 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
         ],
       },
     },
-    decisionCriteria: '|Corrected Error Ec| <= MPE(m)',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 20',
+    units: 'Scale intervals (e) / primary mass unit',
+    rounding: 'Exact MPE step tiers in multiples of 0.5 e',
+    decisionRule: '|Corrected Error Ec| <= MPE(L)',
+    sourceReference: 'OIML R 76-1:2006 (E) Table 6 p. 20',
   },
 
   // 3. Turning Point (Flash Point) Calculation
@@ -84,13 +100,23 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'TURNING_POINT_FLASH',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Displayed Indication', symbol: 'I', description: 'Scale reading under load', unit: 'g / kg' },
+      { name: 'Turning Point Weight', symbol: 'ΔL', description: 'Fractional weights added until indication rolls to I + e', unit: 'g / kg' },
+      { name: 'Test Load', symbol: 'L', description: 'Applied standard weight', unit: 'g / kg' },
+      { name: 'Zero baseline error', symbol: 'E0', description: 'Error observed at initial zero setting', unit: 'g / kg' },
+      { name: 'Verification scale interval', symbol: 'e', description: 'Scale interval', unit: 'g / kg' },
+    ],
+    formula: 'P = I + 0.5·e - ΔL; E = P - L; Ec = E - E0',
     parameters: {
       formulaP: 'P = I + 0.5 * e - deltaL',
       formulaE: 'E = P - L',
       formulaEc: 'Ec = E - E0',
     },
-    decisionCriteria: '|Ec| <= MPE(L)',
-    sourceReference: 'OIML R 76-1:2006 (E) Annex A p. 71',
+    units: 'Primary mass unit (g / kg)',
+    rounding: 'Evaluated with exact decimal precision (5 decimal places); compared directly against MPE',
+    decisionRule: '|Ec| <= |MPE(L)|',
+    sourceReference: 'OIML R 76-1:2006 (E) Annex A Clause A.4.4.3 p. 71',
   },
 
   // 4. Repeatability (Clause 3.6.1 & A.4.10)
@@ -104,6 +130,12 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'REPEATABILITY_SPAN',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Nominal test load', symbol: 'L', description: 'Test load (~0.5 Max or Max)', unit: 'g / kg' },
+      { name: 'Series Indications', symbol: 'I_1..I_k', description: 'Successive indications under the same load', unit: 'g / kg' },
+      { name: 'Scale interval', symbol: 'e', description: 'Verification scale interval', unit: 'g / kg' },
+    ],
+    formula: 'ΔI = I_max - I_min; ΔI <= |MPE(L)|',
     parameters: {
       recommendedRuns: {
         CLASS_I: 10,
@@ -112,8 +144,10 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
         CLASS_IIII: 3,
       },
     },
-    decisionCriteria: '(I_max - I_min) <= |MPE(L)|',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 21, 74',
+    units: 'Primary mass unit (g / kg)',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: '(I_max - I_min) <= |MPE(L)|',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 3.6.1 p. 21, Clause A.4.10 p. 74',
   },
 
   // 5. Eccentric Loading (Clause 3.6.2 & A.4.7)
@@ -127,12 +161,21 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'ECCENTRICITY_LOAD',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Support Points Count', symbol: 'N', description: 'Number of support points (e.g. 4 for 4-corner receptor)', unit: 'integer' },
+      { name: 'Eccentric Test Load', symbol: 'L_ecc', description: 'Prescribed load: Max/3 or Max/(N-1)', unit: 'g / kg' },
+      { name: 'Position Indication', symbol: 'I_k', description: 'Observed indication at corner/quarter sector k', unit: 'g / kg' },
+      { name: 'Turning Point Weight', symbol: 'ΔL_k', description: 'Turning point weight at position k', unit: 'g / kg' },
+    ],
+    formula: 'L_ecc = Max / 3 (N <= 4) or Max / (N - 1) (N > 4); |Ec,k| <= |MPE(L_ecc)|',
     parameters: {
       loadFormulaNLe4: 'Max / 3',
       loadFormulaNGt4: 'Max / (N - 1)',
     },
-    decisionCriteria: 'For every position k: |Ec,k| <= |MPE(L)|',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 22, 72',
+    units: 'Primary mass unit (g / kg)',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: 'For every position k: |Ec,k| <= |MPE(L_ecc)|',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 3.6.2 p. 22, Clause A.4.7 p. 72',
   },
 
   // 6. Zero-Setting Accuracy (Clause 4.5.2 & A.4.2.3)
@@ -146,11 +189,19 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'ZERO_SETTING_ACCURACY',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Zero Indication', symbol: 'I0', description: 'Reading at zero before turning point weights', unit: 'g / kg' },
+      { name: 'Zero Turning Point Weight', symbol: 'ΔL0', description: 'Weights to roll zero indication from 0 to 0+e', unit: 'g / kg' },
+      { name: 'Verification scale interval', symbol: 'e', description: 'Scale interval', unit: 'g / kg' },
+    ],
+    formula: 'E0 = I0 + 0.5·e - ΔL0; |E0| <= 0.25·e',
     parameters: {
       maxPermissibleZeroErrorE: 0.25,
     },
-    decisionCriteria: '|E0| <= 0.25 * e',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 28, 69',
+    units: 'Scale intervals (e) / primary mass unit',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: '|E0| <= 0.25 · e',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 4.5.2 p. 28, Clause A.4.2.3 p. 69',
   },
 
   // 7. Zero-Setting Range (Clause 4.5.1)
@@ -164,12 +215,19 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'ZERO_SETTING_RANGE',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Zero Range Test Load', symbol: 'L_zero', description: 'Maximum positive/negative load zeroes out', unit: 'g / kg' },
+      { name: 'Maximum Capacity', symbol: 'Max', description: 'Max scale capacity', unit: 'g / kg' },
+    ],
+    formula: 'ZeroRange% = (|L_zero| / Max) · 100; Range <= 4% (Non-auto) or 20% (Initial)',
     parameters: {
       nonAutoMaxPercent: 4.0,
       initialZeroMaxPercent: 20.0,
     },
-    decisionCriteria: 'Zeroing range must not exceed declared limits.',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 28',
+    units: 'Percentage (%) of Max',
+    rounding: 'Evaluated with exact 2 decimal percentage',
+    decisionRule: 'Zeroing range must not exceed declared limits (4% or 20%)',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 4.5.1 p. 28',
   },
 
   // 8. Tare Device Accuracy (Clause 4.6.3 & A.4.6)
@@ -183,11 +241,20 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'TARE_ACCURACY',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Applied Tare Load', symbol: 'T', description: 'Weight placed for tare cancellation', unit: 'g / kg' },
+      { name: 'Indicated Tare', symbol: 'I_tare', description: 'Displayed tare reading', unit: 'g / kg' },
+      { name: 'Tare Turning Point Weight', symbol: 'ΔL_tare', description: 'Turning point weight at tare setting', unit: 'g / kg' },
+      { name: 'Net Test Load', symbol: 'L_net', description: 'Net weight placed on tared pan', unit: 'g / kg' },
+    ],
+    formula: 'Etare = (I_tare + 0.5·e - ΔL_tare) - T; |Etare| <= 0.25·e; |Ec,net| <= MPE(L_net)',
     parameters: {
       maxTareErrorE: 0.25,
     },
-    decisionCriteria: '|Etare| <= 0.25 * e and |Ec,net| <= MPE(Net)',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 30, 72',
+    units: 'Scale intervals (e) / primary mass unit',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: '|Etare| <= 0.25 · e and |Ec,net| <= MPE(L_net)',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 4.6.3 p. 30, Clause A.4.6 p. 72',
   },
 
   // 9. Temperature Effect on Span (Clause 3.9.2.3 & A.5.3)
@@ -201,11 +268,20 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'TEMPERATURE_SPAN_DRIFT',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Initial Temperature', symbol: 'T1', description: 'Initial ambient temperature', unit: '°C' },
+      { name: 'Final Temperature', symbol: 'T2', description: 'Elevated/lowered ambient temperature', unit: '°C' },
+      { name: 'Span Error at T1', symbol: 'E(T1)', description: 'Corrected error at load Max at T1', unit: 'g / kg' },
+      { name: 'Span Error at T2', symbol: 'E(T2)', description: 'Corrected error at load Max at T2', unit: 'g / kg' },
+    ],
+    formula: 'SpanShift5C = |(E(T2) - E(T1)) / (T2 - T1)| · 5; Shift <= 1.0·e per 5°C',
     parameters: {
-      maxSpanShiftPer5C_E: 1.0, // 1 e per 5°C for Class II, III, IIII
+      maxSpanShiftPer5C_E: 1.0,
     },
-    decisionCriteria: '|(E(T2) - E(T1)) / (T2 - T1) * 5| <= 1.0 * e',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 25, 78',
+    units: 'Scale intervals (e) per 5°C',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: 'Span shift per 5°C <= 1.0 · e',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 3.9.2.3 p. 25, Clause A.5.3 p. 78',
   },
 
   // 10. Discrimination (Clause 3.8.2.2 & A.4.8)
@@ -219,12 +295,21 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'DISCRIMINATION_THRESHOLD',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Actual scale interval', symbol: 'd', description: 'Smallest scale interval displayed', unit: 'g / kg' },
+      { name: 'Extra gentle load', symbol: 'ΔL_disc', description: 'Load equal to 1.4·d', unit: 'g / kg' },
+      { name: 'Initial Indication', symbol: 'I1', description: 'Reading at rest under test load', unit: 'g / kg' },
+      { name: 'Indication after extra load', symbol: 'I2', description: 'Reading after adding 1.4·d', unit: 'g / kg' },
+    ],
+    formula: 'ΔL_disc = 1.4 · d; ΔI = I2 - I1; ΔI >= 1.0 · d',
     parameters: {
       extraLoadFactorD: 1.4,
       minRequiredChangeFactorD: 1.0,
     },
-    decisionCriteria: 'ΔI = (I_after - I_before) >= 1.0 * d',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 23, 73',
+    units: 'Primary mass unit (g / kg)',
+    rounding: 'Exact discrete digit stepping',
+    decisionRule: 'ΔI = (I2 - I1) >= 1.0 · d',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 3.8.2.2 p. 23, Clause A.4.8 p. 73',
   },
 
   // 11. Tilting (Clause 3.9.1.1 & A.5.1)
@@ -238,13 +323,21 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'TILTING_ERROR_LIMIT',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Tilt Inclination', symbol: 'θ', description: 'Inclination angle (50 ‰)', unit: 'permil' },
+      { name: 'Corrected Error at Level', symbol: 'Ec,level', description: 'Error when properly leveled', unit: 'g / kg' },
+      { name: 'Corrected Error when Tilted', symbol: 'Ec,tilt', description: 'Error at 50‰ tilt angle', unit: 'g / kg' },
+    ],
+    formula: 'ΔEc_tilt = |Ec,tilt - Ec,level|; ΔEc_tilt <= |MPE(L)|',
     parameters: {
       limitingTiltPermil: 50,
       zeroShiftMaxE_ClassII: 2.0,
       zeroShiftMaxE_ClassIII_IIII: 1.0,
     },
-    decisionCriteria: '|Ec,tilted - Ec,level| <= MPE(L)',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 24, 76',
+    units: 'Primary mass unit (g / kg)',
+    rounding: 'Evaluated with exact decimal precision',
+    decisionRule: '|Ec,tilted - Ec,level| <= MPE(L)',
+    sourceReference: 'OIML R 76-1:2006 (E) Clause 3.9.1.1 p. 24, Clause A.5.1 p. 76',
   },
 
   // 12. Multi-Interval Scale Classification (Clause 3.4.1 & Table 3)
@@ -258,10 +351,18 @@ export const OIML_R76_2006_RULES: MetrologyRule[] = [
     applicableClasses: ['CLASS_I', 'CLASS_II', 'CLASS_III', 'CLASS_IIII'],
     formulaType: 'MPE_TABLE_LOOKUP',
     verificationStatus: 'VERIFIED',
+    inputs: [
+      { name: 'Partial Range Intervals', symbol: 'e_i', description: 'Verification scale intervals for each partial range', unit: 'g / kg' },
+      { name: 'Partial Range Capacities', symbol: 'Max_i', description: 'Maximum capacity for each partial range', unit: 'g / kg' },
+    ],
+    formula: 'n_i = Max_i / e_i; e_(i+1) / e_i >= 2',
     parameters: {
-      minRatioE: 2.0, // e_(i+1) / e_i >= 2
+      minRatioE: 2.0,
     },
-    decisionCriteria: 'For each partial range i: n_min <= n_i <= n_max and e_(i+1) >= 2 * e_i',
-    sourceReference: 'OIML R 76-1:2006 (E) p. 18, 19',
+    units: 'Dimensionless / primary mass unit',
+    rounding: 'Exact integer intervals',
+    decisionRule: 'For each partial range i: n_min <= n_i <= n_max and e_(i+1) >= 2 · e_i',
+    sourceReference: 'OIML R 76-1:2006 (E) Section 3.4 p. 18, 19',
   },
 ];
+

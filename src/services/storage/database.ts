@@ -12,6 +12,7 @@ import { calculateEccentricityPosition } from '../../metrology/calculations/ecce
 import { calculateZeroSetting } from '../../metrology/calculations/zeroSetting';
 import { calculateTare } from '../../metrology/calculations/tare';
 import { ruleEngine } from '../../metrology/rules/ruleEngine';
+import { generateTestReport } from '../../metrology/compliance/reportGenerator';
 
 // LocalStorage Keys
 const KEYS = {
@@ -340,45 +341,20 @@ class MetrologyDatabase {
       attachmentIds: [],
     };
 
+    sampleTestSession.isDemoData = true;
     this.testSessions.set(sampleTestSession.id, sampleTestSession);
 
     // Create Report
-    const sampleReport: TestReport = {
-      id: 'RPT-2026-000001',
-      reportNumber: 'NAWI-RPT-2026-000001',
-      currentRevision: 0,
-      testSessionId: sampleTestSession.id,
-      instrumentId: inst.id,
-      laboratoryId: 'LAB-IND-001',
-      standardEdition: 'OIML R 76-1:2006',
-      ruleSetVersion: 'OIML-R76-2006-v1.0',
-      instrumentSnapshot: inst,
-      testSessionSnapshot: sampleTestSession,
+    const sampleReport = generateTestReport({
+      testSession: sampleTestSession,
+      laboratory: SEED_LABORATORY,
       equipmentSnapshots: [SEED_EQUIPMENT[1], SEED_EQUIPMENT[3]],
-      overallCompliance: 'PASS',
-      complianceStatement: 'The non-automatic weighing instrument COMPLIES with all verified legal metrology requirements of OIML Recommendation R 76-1:2006 (E) for Accuracy Class III.',
-      technicianName: 'Aniket Gond',
-      technicianSignedAt: '2026-02-12T12:00:00Z',
-      reviewerName: 'Dr. Rajesh Verma',
-      reviewerSignedAt: '2026-02-12T14:30:00Z',
-      isApproved: true,
-      sha256IntegrityHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-      generatedAt: '2026-02-12T14:35:00Z',
-      revisions: [
-        {
-          revisionNumber: 0,
-          createdAt: '2026-02-12T14:35:00Z',
-          createdBy: 'USR-REV-01',
-          createdByName: 'Dr. Rajesh Verma',
-          reasonForRevision: 'Initial Official Verification Report',
-          reportSnapshotData: JSON.stringify(sampleTestSession),
-          sha256Hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-          approvedBy: 'Dr. Rajesh Verma',
-          approvedAt: '2026-02-12T14:30:00Z',
-        },
-      ],
-      attachments: [],
-    };
+      reviewer: SEED_USERS[1],
+      comments: 'Full metrological verification confirmed. All errors are within Table 6 limits.',
+      isDemoData: true,
+    });
+    sampleReport.id = 'RPT-2026-000001';
+    sampleReport.reportNumber = 'NAWI-RPT-2026-000001';
 
     this.reports.set(sampleReport.id, sampleReport);
     this.reportCounter = 2;
@@ -577,56 +553,26 @@ class MetrologyDatabase {
     const session = this.testSessions.get(testSessionId);
     if (!session) throw new Error('Test session not found');
 
-    const inst = this.instruments.get(session.instrumentId);
-    if (!inst) throw new Error('Instrument not found');
+    const lab = this.laboratories.get(session.laboratoryId) || this.laboratories.values().next().value;
+    if (!lab) throw new Error('Laboratory profile not found');
 
     const eqSnapshots: TestEquipment[] = session.equipmentIds
       .map((id) => this.equipment.get(id))
       .filter((eq): eq is TestEquipment => eq !== undefined);
 
-    const reportNumber = this.generateNextReportNumber();
-    const snapshotStr = JSON.stringify({ session, inst, eqSnapshots });
-    const integrityHash = await calculateSha256(snapshotStr);
+    // Enforce role separation: technician cannot silently approve their own session unless admin/authorized
+    if (session.technicianId === actor.id && actor.role !== 'ADMIN' && actor.role !== 'REVIEWER_OFFICER') {
+      throw new Error('Metrology workflow violation: Testing Technician cannot self-approve reports without an independent Reviewer signoff.');
+    }
 
-    const report: TestReport = {
-      id: reportNumber,
-      reportNumber,
-      currentRevision: 0,
-      testSessionId: session.id,
-      instrumentId: inst.id,
-      laboratoryId: session.laboratoryId,
-      standardEdition: session.standardEdition,
-      ruleSetVersion: session.ruleSetVersion,
-      instrumentSnapshot: inst,
-      testSessionSnapshot: session,
+    const report = generateTestReport({
+      testSession: session,
+      laboratory: lab,
       equipmentSnapshots: eqSnapshots,
-      overallCompliance: session.overallCompliance,
-      complianceStatement:
-        session.overallCompliance === 'PASS'
-          ? `The non-automatic weighing instrument COMPLIES with all verified legal metrology requirements of OIML Recommendation R 76-1:2006 (E) for Accuracy Class ${inst.accuracyClass.replace('_', ' ')}.`
-          : `The non-automatic weighing instrument DOES NOT COMPLY with OIML Recommendation R 76-1:2006 (E) requirements.`,
-      technicianName: session.technicianName,
-      technicianSignedAt: session.completedAt || new Date().toISOString(),
-      reviewerName: actor.fullName,
-      reviewerSignedAt: new Date().toISOString(),
-      isApproved: session.overallCompliance === 'PASS',
-      sha256IntegrityHash: integrityHash,
-      generatedAt: new Date().toISOString(),
-      revisions: [
-        {
-          revisionNumber: 0,
-          createdAt: new Date().toISOString(),
-          createdBy: actor.id,
-          createdByName: actor.fullName,
-          reasonForRevision: 'Initial Finalized Verification Report',
-          reportSnapshotData: snapshotStr,
-          sha256Hash: integrityHash,
-          approvedBy: actor.fullName,
-          approvedAt: new Date().toISOString(),
-        },
-      ],
-      attachments: [],
-    };
+      reviewer: actor,
+      comments,
+      isDemoData: !!session.isDemoData,
+    });
 
     // Update test session status to REPORT_GENERATED
     session.status = 'REPORT_GENERATED';
@@ -647,7 +593,7 @@ class MetrologyDatabase {
       entityType: 'REPORT',
       entityId: report.id,
       entityName: report.reportNumber,
-      description: `Generated official test report ${report.reportNumber} (Result: ${report.overallCompliance})`,
+      description: `Generated and digitally sealed verification report (${report.overallCompliance})`,
       newValue: report,
     });
 

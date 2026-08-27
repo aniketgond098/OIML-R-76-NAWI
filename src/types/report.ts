@@ -28,6 +28,34 @@ export interface ReportRevision {
   approvedAt?: string;
 }
 
+export interface ComplianceMatrixEntry {
+  category: string;
+  name: string;
+  testName?: string;
+  clauseRef: string;
+  standard?: string;
+  edition?: StandardEdition;
+  isApplicable: boolean;
+  status: string;
+  ruleId: string;
+  compliance?: ComplianceStatus;
+  summaryResult?: string;
+  mpeRequirement?: string;
+  calculatedError?: string;
+  notes?: string;
+}
+
+export interface PrototypeApprovalRecord {
+  signerName: string;
+  signerTitle: string;
+  signerRole: string;
+  laboratoryName: string;
+  signedAt: string;
+  digestMethod: 'SHA-256';
+  approvalType: 'PROTOTYPE_ELECTRONIC_APPROVAL';
+  signatureToken: string;
+}
+
 export interface TestReport {
   id: string;
   reportNumber: string; // e.g. "NAWI-RPT-2026-000001"
@@ -37,22 +65,36 @@ export interface TestReport {
   laboratoryId: string;
   
   standardEdition: StandardEdition;
-  ruleSetVersion: string;
+  ruleSetVersion: string; // e.g. "OIML-R76-2006-v1.0"
+  isDemoData: boolean; // Flag to identify prototype / demo data clearly
   
   // Snapshots at time of finalization
   instrumentSnapshot: Instrument;
   testSessionSnapshot: TestSession;
   equipmentSnapshots: TestEquipment[];
   
+  // Structured Compliance Summary Matrix
+  complianceMatrix: ComplianceMatrixEntry[];
+  
   // Overall result
   overallCompliance: ComplianceStatus;
-  complianceStatement: string; // Legal metrology declaration
+  complianceReason?: string; // Detailed rationale (e.g. why NOT_EVALUATED or why FAIL)
+  complianceStatement: string; // Official legal metrology declaration
   
   // Signatures & Authorization
   technicianName: string;
   technicianSignedAt?: string;
+  technicianApproval?: PrototypeApprovalRecord;
   reviewerName: string;
   reviewerSignedAt?: string;
+  reviewerApproval?: PrototypeApprovalRecord;
+  approvalRecord?: {
+    status: string;
+    reviewedBy: string;
+    reviewerId: string;
+    reviewedAt: string;
+    comments?: string;
+  };
   isApproved: boolean;
   
   // Integrity & Immutability

@@ -12,10 +12,18 @@ export type MetrologyFormulaType =
   | 'DISCRIMINATION_THRESHOLD'
   | 'TILTING_ERROR_LIMIT';
 
+export interface RuleInputSpec {
+  name: string;
+  symbol: string;
+  description: string;
+  unit: string;
+  isOptional?: boolean;
+}
+
 export interface MetrologyRule {
-  ruleId: string; // e.g. "R76-2006-TBL6-MPE-CLASS-III"
+  ruleId: string; // e.g. "R76-2006-TBL6-MPE-INITIAL"
   standard: string; // "OIML R 76-1"
-  edition: StandardEdition;
+  edition: StandardEdition; // "OIML R 76-1:2006"
   clauseRef: string; // e.g. "Clause 3.5.1, Table 6"
   title: string;
   description: string;
@@ -23,11 +31,13 @@ export interface MetrologyRule {
   formulaType: MetrologyFormulaType;
   verificationStatus: VerificationStatus;
   
-  // Explicit rule parameters
+  // Formal OIML Calculation Metadata
+  inputs: RuleInputSpec[];
+  formula: string;
   parameters: Record<string, any>;
-  
-  // Mathematical logic definition
-  decisionCriteria: string;
+  units: string;
+  rounding: string;
+  decisionRule: string;
   sourceReference: string;
 }
 
