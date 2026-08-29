@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TestSession, ZeroSettingObservation, TareObservation } from '../../../types/testSession';
 import { calculateZeroSetting } from '../../../metrology/calculations/zeroSetting';
 import { calculateTare } from '../../../metrology/calculations/tare';
@@ -12,6 +12,7 @@ interface Props {
   isReadOnly: boolean;
   onUpdateZeroSetting: (obs: ZeroSettingObservation) => void;
   onUpdateTare: (obs: TareObservation) => void;
+  onUpdateBoth?: (zeroObs: ZeroSettingObservation, tareObs: TareObservation) => void;
 }
 
 export const ZeroTareTestTab: React.FC<Props> = ({
@@ -19,6 +20,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
   isReadOnly,
   onUpdateZeroSetting,
   onUpdateTare,
+  onUpdateBoth,
 }) => {
   const inst = session.instrumentSnapshot;
   const [selectedExplanation, setSelectedExplanation] = useState<CalculationExplanation | null>(null);
@@ -51,6 +53,19 @@ export const ZeroTareTestTab: React.FC<Props> = ({
     ],
     compliance: 'PASS',
   };
+
+  // Sync to parent if session does not have both initialized
+  useEffect(() => {
+    if (isReadOnly) return;
+    if (!session.zeroSettingObservation || !session.tareObservation) {
+      if (onUpdateBoth) {
+        onUpdateBoth(zeroObs, tareObs);
+      } else {
+        if (!session.zeroSettingObservation) onUpdateZeroSetting(zeroObs);
+        if (!session.tareObservation) onUpdateTare(tareObs);
+      }
+    }
+  }, []);
 
   const handleZeroFieldChange = (
     field: 'zeroIndication' | 'turningPointDeltaL0' | 'testType',

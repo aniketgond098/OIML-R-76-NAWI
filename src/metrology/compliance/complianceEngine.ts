@@ -202,15 +202,12 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           if (!zero) {
             item.status = 'PENDING';
             item.compliance = 'NOT_EVALUATED';
-          } else if (zero.compliance === 'FAIL') {
-            item.status = 'COMPLETED';
-            item.compliance = 'FAIL';
-          } else if (zero.compliance === 'PASS') {
-            item.status = 'COMPLETED';
-            item.compliance = 'PASS';
           } else {
-            item.status = 'IN_PROGRESS';
-            item.compliance = 'NOT_EVALUATED';
+            const e0 = Math.abs(zero.calculatedZeroErrorE0 ?? (zero.zeroIndication ?? 0) + 0.5 * (session.instrumentSnapshot?.actualScaleInterval ?? 0) - (zero.turningPointDeltaL0 ?? 0));
+            const maxPermissible = zero.maxPermissibleZeroError ?? (0.25 * (session.instrumentSnapshot?.verificationScaleInterval ?? 1));
+            const isPass = zero.compliance === 'PASS' || (e0 <= maxPermissible + 1e-9);
+            item.status = 'COMPLETED';
+            item.compliance = isPass ? 'PASS' : 'FAIL';
           }
           break;
         }
@@ -220,15 +217,13 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           if (!tare) {
             item.status = 'PENDING';
             item.compliance = 'NOT_EVALUATED';
-          } else if (tare.compliance === 'FAIL') {
-            item.status = 'COMPLETED';
-            item.compliance = 'FAIL';
-          } else if (tare.compliance === 'PASS') {
-            item.status = 'COMPLETED';
-            item.compliance = 'PASS';
           } else {
-            item.status = 'IN_PROGRESS';
-            item.compliance = 'NOT_EVALUATED';
+            const eTare = Math.abs(tare.calculatedTareError ?? 0);
+            const maxPermissible = 0.25 * (session.instrumentSnapshot?.verificationScaleInterval ?? 1);
+            const tarePass = tare.compliance === 'PASS' || (eTare <= maxPermissible + 1e-9);
+            const netPass = !tare.netTestPoints || tare.netTestPoints.length === 0 || tare.netTestPoints.every((pt) => pt.compliance === 'PASS' || (pt.compliance as string) !== 'FAIL');
+            item.status = 'COMPLETED';
+            item.compliance = (tarePass && netPass) ? 'PASS' : 'FAIL';
           }
           break;
         }

@@ -54,19 +54,22 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
 
   // Helper to re-evaluate compliance on changes and persist
   const saveUpdatedSession = (updates: Partial<TestSession>) => {
-    const merged: TestSession = {
-      ...session,
-      ...updates,
-      status: session.status === 'DRAFT' && !updates.status ? 'IN_PROGRESS' : (updates.status || session.status),
-    };
+    setSession((prevSession) => {
+      const baseSession = prevSession || db.getTestSession(sessionId) || session;
+      const merged: TestSession = {
+        ...baseSession,
+        ...updates,
+        status: baseSession.status === 'DRAFT' && !updates.status ? 'IN_PROGRESS' : (updates.status || baseSession.status),
+      };
 
-    // Run compliance engine to dynamically synchronize test plan items and overall compliance
-    const compEval = evaluateOverallTestSessionCompliance(merged);
-    merged.overallCompliance = compEval.overallCompliance;
-    merged.complianceSummary = compEval.summary;
+      // Run compliance engine to dynamically synchronize test plan items and overall compliance
+      const compEval = evaluateOverallTestSessionCompliance(merged);
+      merged.overallCompliance = compEval.overallCompliance;
+      merged.complianceSummary = compEval.summary;
 
-    db.updateTestSession(merged, currentUser);
-    setSession({ ...merged });
+      db.updateTestSession(merged, currentUser);
+      return merged;
+    });
 
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2000);
@@ -296,6 +299,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             isReadOnly={isReadOnly}
             onUpdateZeroSetting={(zeroSettingObservation) => saveUpdatedSession({ zeroSettingObservation })}
             onUpdateTare={(tareObservation) => saveUpdatedSession({ tareObservation })}
+            onUpdateBoth={(zeroSettingObservation, tareObservation) =>
+              saveUpdatedSession({ zeroSettingObservation, tareObservation })
+            }
           />
         )}
 

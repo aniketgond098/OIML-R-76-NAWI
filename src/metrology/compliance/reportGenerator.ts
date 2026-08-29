@@ -64,17 +64,25 @@ export function generateTestReport(input: ReportGenerationInput): TestReport {
 
       case 'ZERO_SETTING':
         if (testSession.zeroSettingObservation) {
-          calculatedError = `E0 = ${(testSession.zeroSettingObservation.calculatedZeroErrorE0 || 0).toFixed(4)} ${inst.unit}`;
-          mpeRequirement = `|E0| <= 0.25 e = ${(0.25 * inst.verificationScaleInterval).toFixed(4)} ${inst.unit} (Clause 4.5.2)`;
-          summaryResult = testSession.zeroSettingObservation.compliance;
+          const z = testSession.zeroSettingObservation;
+          const e0 = Math.abs(z.calculatedZeroErrorE0 || 0);
+          const maxZeroMpe = z.maxPermissibleZeroError || (0.25 * (inst.verificationScaleInterval || 1));
+          calculatedError = `E0 = ${e0.toFixed(4)} ${inst.unit}`;
+          mpeRequirement = `|E0| ≤ 0.25 e (±${maxZeroMpe.toFixed(4)} ${inst.unit})`;
+          summaryResult = (z.compliance === 'PASS' || e0 <= maxZeroMpe + 1e-9) ? 'PASS (Within 0.25e)' : 'FAIL (Exceeds 0.25e)';
         }
         break;
 
       case 'TARE':
         if (testSession.tareObservation) {
-          calculatedError = `Etare = ${(testSession.tareObservation.calculatedTareError || 0).toFixed(4)} ${inst.unit}`;
-          mpeRequirement = `|Et| <= 0.25 e = ${(0.25 * inst.verificationScaleInterval).toFixed(4)} ${inst.unit} (Clause 4.6.3)`;
-          summaryResult = testSession.tareObservation.compliance;
+          const t = testSession.tareObservation;
+          const eTare = Math.abs(t.calculatedTareError || 0);
+          const maxTareMpe = 0.25 * (inst.verificationScaleInterval || 1);
+          calculatedError = `Etare = ${eTare.toFixed(4)} ${inst.unit}`;
+          mpeRequirement = `|Et| ≤ 0.25 e (±${maxTareMpe.toFixed(4)} ${inst.unit})`;
+          const tarePass = t.compliance === 'PASS' || eTare <= maxTareMpe + 1e-9;
+          const netPass = !t.netTestPoints || t.netTestPoints.length === 0 || t.netTestPoints.every((pt) => pt.compliance !== 'FAIL');
+          summaryResult = (tarePass && netPass) ? 'PASS (Tare & Net compliant)' : 'FAIL';
         }
         break;
 
