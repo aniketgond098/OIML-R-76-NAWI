@@ -9,6 +9,7 @@ import {
   History,
   CheckSquare,
   ShieldAlert,
+  ExternalLink,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
@@ -121,14 +122,30 @@ export const Sidebar: React.FC<Props> = ({
         </div>
 
         {/* Metrological Authority Notice */}
-        <div className="p-3 bg-slate-800/70 border border-slate-700/80 rounded-xl space-y-1.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
-            <ShieldAlert size={14} className="text-amber-400" />
-            <span>Standard Version</span>
+        <div className="p-3 bg-slate-800/70 border border-slate-700/80 rounded-xl space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-200">
+            <div className="flex items-center gap-1.5">
+              <ShieldAlert size={14} className="text-amber-400" />
+              <span>Standard Version</span>
+            </div>
+            <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-indigo-900/80 text-indigo-200 border border-indigo-700/50">
+              2006 (E)
+            </span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed">
             Operating under <strong className="text-slate-200">OIML R 76-1:2006</strong> ruleset. All MPE calculations are traceable.
           </p>
+          <a
+            id="sidebar-official-oiml-link"
+            href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-700/70 hover:bg-indigo-600 text-slate-200 hover:text-white text-[11px] font-medium transition-all group"
+            title="Open official OIML R 76-1:2006 PDF from OIML.org"
+          >
+            <span>Official OIML R-76 Rules</span>
+            <ExternalLink size={12} className="text-slate-400 group-hover:text-white transition-colors" />
+          </a>
         </div>
       </div>
 

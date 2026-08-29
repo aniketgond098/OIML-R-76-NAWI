@@ -7,7 +7,17 @@ import { calculateTare } from '../../metrology/calculations/tare';
 import { calculateTemperatureSpan } from '../../metrology/calculations/environmental';
 import { evaluateOverallTestSessionCompliance } from '../../metrology/compliance/complianceEngine';
 import { SEED_INSTRUMENTS } from '../../services/storage/seedData';
-import { Play, CheckCircle2, XCircle, ShieldCheck, RefreshCw, Layers, Calculator } from 'lucide-react';
+import {
+  Play,
+  CheckCircle2,
+  XCircle,
+  ShieldCheck,
+  RefreshCw,
+  Layers,
+  Calculator,
+  ExternalLink,
+  FileText,
+} from 'lucide-react';
 
 interface TestCaseResult {
   id: string;
@@ -192,15 +202,30 @@ export const MetrologyVerificationSuite: React.FC = () => {
           </p>
         </div>
 
-        <button
-          id="btn-run-all-qa-tests"
-          onClick={runAllVerificationTests}
-          disabled={isRunning}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-2xs transition-colors disabled:opacity-50 shrink-0"
-        >
-          {isRunning ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
-          Execute All Verification Test Cases
-        </button>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
+          <a
+            id="qa-official-oiml-rules-btn"
+            href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition-colors shrink-0"
+            title="Open official OIML R 76-1:2006 standard publication (PDF)"
+          >
+            <FileText size={14} className="text-indigo-600" />
+            <span>Official OIML R 76-1 PDF</span>
+            <ExternalLink size={12} className="text-slate-400" />
+          </a>
+
+          <button
+            id="btn-run-all-qa-tests"
+            onClick={runAllVerificationTests}
+            disabled={isRunning}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-lg shadow-2xs transition-colors disabled:opacity-50 shrink-0"
+          >
+            {isRunning ? <RefreshCw size={14} className="animate-spin" /> : <Play size={14} />}
+            Execute All Verification Test Cases
+          </button>
+        </div>
       </div>
 
       {/* Summary Card */}

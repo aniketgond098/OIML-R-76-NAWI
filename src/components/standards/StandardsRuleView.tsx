@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { db } from '../../services/storage/database';
-import { BookOpen, Search, ShieldCheck, CheckCircle2, ChevronRight, Layers, Table } from 'lucide-react';
+import {
+  BookOpen,
+  Search,
+  ShieldCheck,
+  CheckCircle2,
+  ChevronRight,
+  Layers,
+  Table,
+  ExternalLink,
+  FileText,
+  Globe,
+  Download,
+} from 'lucide-react';
 import { MetrologyRule } from '../../metrology/rules/ruleTypes';
 
 export const StandardsRuleView: React.FC = () => {
@@ -17,18 +29,96 @@ export const StandardsRuleView: React.FC = () => {
   });
 
   return (
-    <div id="standards-rules-view" className="p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div id="standards-rules-view" className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto">
+      {/* Header with Official OIML Source Buttons */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <BookOpen size={22} className="text-indigo-600" />
-            OIML R 76-1:2006 Rule Registry & Standard Tables
-          </h2>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <BookOpen size={18} />
+            </div>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+              OIML R 76-1:2006 Rule Registry & Standard Tables
+            </h2>
+          </div>
           <p className="text-xs text-slate-500 mt-1">
             Governing legal metrology clauses, Table 3 accuracy limits, Table 6 MPE envelopes, and decision rules
           </p>
         </div>
+
+        {/* Primary Official OIML Source Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <a
+            id="btn-oiml-official-pdf"
+            href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-xs font-semibold shadow-xs transition-all"
+            title="Open official OIML R 76-1:2006 (E) PDF (OIML Official Portal)"
+          >
+            <FileText size={15} />
+            <span>Official OIML R 76-1 PDF</span>
+            <ExternalLink size={13} className="text-indigo-200" />
+          </a>
+
+          <a
+            id="btn-oiml-portal"
+            href="https://www.oiml.org/en/publications/recommendations/publication_view?p_type=1&p_status=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 text-xs font-semibold border border-slate-200 transition-all"
+            title="Visit the International Organization of Legal Metrology (OIML) recommendations portal"
+          >
+            <Globe size={15} className="text-slate-600" />
+            <span>OIML Official Portal</span>
+            <ExternalLink size={13} className="text-slate-500" />
+          </a>
+        </div>
+      </div>
+
+      {/* Official Publications Quick Reference Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <a
+          href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 bg-gradient-to-br from-indigo-50/70 to-slate-50 border border-indigo-100 hover:border-indigo-300 rounded-xl transition-all group flex items-start justify-between"
+        >
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Governing Standard</span>
+            <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">OIML R 76-1:2006 (E)</h4>
+            <p className="text-[11px] text-slate-500">Metrological & Technical Requirements — Tests</p>
+          </div>
+          <ExternalLink size={14} className="text-indigo-400 group-hover:text-indigo-600 shrink-0 mt-0.5" />
+        </a>
+
+        <a
+          href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-2-e07.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition-all group flex items-start justify-between"
+        >
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Report Standard</span>
+            <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">OIML R 76-2:2007 (E)</h4>
+            <p className="text-[11px] text-slate-500">Pattern Evaluation Test Report Format</p>
+          </div>
+          <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 shrink-0 mt-0.5" />
+        </a>
+
+        <a
+          href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r111-1-e04.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-xl transition-all group flex items-start justify-between"
+        >
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Weights Standard</span>
+            <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">OIML R 111-1:2004 (E)</h4>
+            <p className="text-[11px] text-slate-500">Weights of Classes E1, E2, F1, F2, M1, M2, M3</p>
+          </div>
+          <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 shrink-0 mt-0.5" />
+        </a>
       </div>
 
       {/* Filter & Search */}
@@ -163,9 +253,20 @@ export const StandardsRuleView: React.FC = () => {
               )}
 
               {/* Reference */}
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-                <span>Standard: <strong>{selectedRule.standard} ({selectedRule.edition})</strong></span>
-                <span>Source: <strong>{selectedRule.sourceReference}</strong></span>
+              <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500">
+                <div className="space-y-0.5">
+                  <div>Standard: <strong className="text-slate-800">{selectedRule.standard} ({selectedRule.edition})</strong></div>
+                  <div>Source Clause: <strong className="text-slate-800">{selectedRule.sourceReference}</strong></div>
+                </div>
+                <a
+                  href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 transition-colors shrink-0"
+                >
+                  <span>Verify in OIML R 76-1 PDF</span>
+                  <ExternalLink size={12} />
+                </a>
               </div>
             </div>
           ) : (
