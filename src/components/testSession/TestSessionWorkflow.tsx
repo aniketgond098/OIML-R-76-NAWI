@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TestSession } from '../../types/testSession';
+import { ComplianceStatus } from '../../types/metrology';
 import { db } from '../../services/storage/database';
 import { useAuth } from '../../services/auth/authContext';
 import { evaluateOverallTestSessionCompliance } from '../../metrology/compliance/complianceEngine';
@@ -31,7 +32,7 @@ interface Props {
 
 export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onViewReport }) => {
   const { currentUser, canRecordObservations, canSubmitForReview, canApproveTest } = useAuth();
-  const session = db.getTestSession(sessionId);
+  const [session, setSession] = useState<TestSession | undefined>(() => db.getTestSession(sessionId));
 
   if (!session) {
     return (
@@ -56,14 +57,16 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
     const merged: TestSession = {
       ...session,
       ...updates,
+      status: session.status === 'DRAFT' && !updates.status ? 'IN_PROGRESS' : (updates.status || session.status),
     };
 
-    // Run compliance engine
+    // Run compliance engine to dynamically synchronize test plan items and overall compliance
     const compEval = evaluateOverallTestSessionCompliance(merged);
     merged.overallCompliance = compEval.overallCompliance;
     merged.complianceSummary = compEval.summary;
 
     db.updateTestSession(merged, currentUser);
+    setSession({ ...merged });
 
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2000);
@@ -96,6 +99,28 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
   // Check existing report if any
   const existingReports = db.getReportsForInstrument(session.instrumentId);
   const matchedReport = existingReports.find((r) => r.testSessionId === session.id);
+
+  const getTabCompliance = (tabId: string): ComplianceStatus | undefined => {
+    if (!session.testPlan) return undefined;
+    if (tabId === 'weighing') {
+      return session.testPlan.find((p) => p.category === 'WEIGHING_ACCURACY')?.compliance;
+    }
+    if (tabId === 'repeatability') {
+      return session.testPlan.find((p) => p.category === 'REPEATABILITY')?.compliance;
+    }
+    if (tabId === 'eccentricity') {
+      return session.testPlan.find((p) => p.category === 'ECCENTRICITY')?.compliance;
+    }
+    if (tabId === 'zerotare') {
+      const zero = session.testPlan.find((p) => p.category === 'ZERO_SETTING')?.compliance;
+      const tare = session.testPlan.find((p) => p.category === 'TARE')?.compliance;
+      if (zero === 'FAIL' || tare === 'FAIL') return 'FAIL';
+      if (zero === 'PASS' && tare === 'PASS') return 'PASS';
+      if (zero === 'PASS' || tare === 'PASS') return 'PASS';
+      return 'NOT_EVALUATED';
+    }
+    return undefined;
+  };
 
   return (
     <div id="test-session-workflow" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
@@ -200,6 +225,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeWorkflowTab === tab.id;
+            const comp = getTabCompliance(tab.id);
             return (
               <button
                 key={tab.id}
@@ -212,6 +238,17 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               >
                 <Icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
                 <span>{tab.label}</span>
+                {comp && comp !== 'NOT_EVALUATED' && (
+                  <span
+                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                      comp === 'PASS'
+                        ? isActive ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-800'
+                        : isActive ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-800'
+                    }`}
+                  >
+                    {comp}
+                  </span>
+                )}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span
                     className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${

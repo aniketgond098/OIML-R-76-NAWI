@@ -5,7 +5,7 @@ import { TestEquipment } from '../../types/equipment';
 import { Laboratory, UserProfile } from '../../types/user';
 import { SEED_EQUIPMENT, SEED_INSTRUMENTS, SEED_LABORATORY, SEED_USERS } from './seedData';
 import { auditService } from './auditService';
-import { generateTestPlanForInstrument } from '../../metrology/compliance/complianceEngine';
+import { generateTestPlanForInstrument, evaluateOverallTestSessionCompliance } from '../../metrology/compliance/complianceEngine';
 import { calculateWeighingError } from '../../metrology/calculations/weighing';
 import { calculateRepeatability } from '../../metrology/calculations/repeatability';
 import { calculateEccentricityPosition } from '../../metrology/calculations/eccentricity';
@@ -402,16 +402,34 @@ class MetrologyDatabase {
 
   // --- Test Sessions API ---
   public getTestSessions(): TestSession[] {
-    return Array.from(this.testSessions.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return Array.from(this.testSessions.values())
+      .map((s) => {
+        const compEval = evaluateOverallTestSessionCompliance(s);
+        s.overallCompliance = compEval.overallCompliance;
+        s.complianceSummary = compEval.summary;
+        return s;
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   public getTestSession(id: string): TestSession | undefined {
-    return this.testSessions.get(id);
+    const session = this.testSessions.get(id);
+    if (!session) return undefined;
+    const compEval = evaluateOverallTestSessionCompliance(session);
+    session.overallCompliance = compEval.overallCompliance;
+    session.complianceSummary = compEval.summary;
+    return session;
   }
 
   public getTestSessionsForInstrument(instrumentId: string): TestSession[] {
     return Array.from(this.testSessions.values())
       .filter((s) => s.instrumentId === instrumentId)
+      .map((s) => {
+        const compEval = evaluateOverallTestSessionCompliance(s);
+        s.overallCompliance = compEval.overallCompliance;
+        s.complianceSummary = compEval.summary;
+        return s;
+      })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
@@ -509,6 +527,10 @@ class MetrologyDatabase {
   public updateTestSession(session: TestSession, actor: UserProfile, reason?: string): TestSession {
     const existing = this.testSessions.get(session.id);
     if (!existing) throw new Error('Test session not found');
+
+    const compEval = evaluateOverallTestSessionCompliance(session);
+    session.overallCompliance = compEval.overallCompliance;
+    session.complianceSummary = compEval.summary;
 
     this.testSessions.set(session.id, session);
     this.persist();

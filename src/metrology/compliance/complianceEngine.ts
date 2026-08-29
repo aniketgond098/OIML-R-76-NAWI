@@ -115,6 +115,7 @@ export function generateTestPlanForInstrument(instrument: Instrument): TestPlanI
  * Evaluate Overall Compliance across all test categories
  * 
  * Rules:
+ * - Dynamically evaluates each planItem's compliance based on actual observations
  * - If any mandatory applicable test is FAIL -> OVERALL RESULT is FAIL
  * - If any mandatory applicable test is NOT_EVALUATED -> OVERALL RESULT is NOT_EVALUATED
  * - ONLY if all mandatory applicable tests are PASS -> OVERALL RESULT is PASS
@@ -131,6 +132,114 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
   complianceReason: string;
   legalStatement: string;
 } {
+  // 1. Synchronize / Evaluate each individual test plan item based on recorded session observations
+  if (session.testPlan && session.testPlan.length > 0) {
+    for (const item of session.testPlan) {
+      if (!item.isApplicable || item.status === 'SKIPPED') {
+        if (!item.isMandatory) {
+          item.compliance = 'PASS';
+        }
+        continue;
+      }
+
+      switch (item.category) {
+        case 'WEIGHING_ACCURACY': {
+          const obs = session.weighingObservations;
+          if (!obs || obs.length === 0) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else if (obs.some((o) => o.compliance === 'FAIL')) {
+            item.status = 'COMPLETED';
+            item.compliance = 'FAIL';
+          } else if (obs.some((o) => o.compliance === 'NOT_EVALUATED')) {
+            item.status = 'IN_PROGRESS';
+            item.compliance = 'NOT_EVALUATED';
+          } else {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          }
+          break;
+        }
+
+        case 'REPEATABILITY': {
+          const series = session.repeatabilitySeries;
+          if (!series || series.length === 0) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else if (series.some((s) => s.compliance === 'FAIL')) {
+            item.status = 'COMPLETED';
+            item.compliance = 'FAIL';
+          } else if (series.some((s) => s.compliance === 'NOT_EVALUATED' || !s.readings || s.readings.length === 0)) {
+            item.status = 'IN_PROGRESS';
+            item.compliance = 'NOT_EVALUATED';
+          } else {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          }
+          break;
+        }
+
+        case 'ECCENTRICITY': {
+          const ecc = session.eccentricityObservations;
+          if (!ecc || ecc.length === 0) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else if (ecc.some((e) => e.compliance === 'FAIL')) {
+            item.status = 'COMPLETED';
+            item.compliance = 'FAIL';
+          } else if (ecc.some((e) => e.compliance === 'NOT_EVALUATED')) {
+            item.status = 'IN_PROGRESS';
+            item.compliance = 'NOT_EVALUATED';
+          } else {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          }
+          break;
+        }
+
+        case 'ZERO_SETTING': {
+          const zero = session.zeroSettingObservation;
+          if (!zero) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else if (zero.compliance === 'FAIL') {
+            item.status = 'COMPLETED';
+            item.compliance = 'FAIL';
+          } else if (zero.compliance === 'PASS') {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          } else {
+            item.status = 'IN_PROGRESS';
+            item.compliance = 'NOT_EVALUATED';
+          }
+          break;
+        }
+
+        case 'TARE': {
+          const tare = session.tareObservation;
+          if (!tare) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else if (tare.compliance === 'FAIL') {
+            item.status = 'COMPLETED';
+            item.compliance = 'FAIL';
+          } else if (tare.compliance === 'PASS') {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          } else {
+            item.status = 'IN_PROGRESS';
+            item.compliance = 'NOT_EVALUATED';
+          }
+          break;
+        }
+
+        default:
+          break;
+      }
+    }
+  }
+
+  // 2. Tally overall session metrics
   let passedCount = 0;
   let failedCount = 0;
   let notEvaluatedCount = 0;
@@ -142,7 +251,7 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
   const notes: string[] = [];
 
   // Check each plan item
-  for (const item of session.testPlan) {
+  for (const item of (session.testPlan || [])) {
     if (!item.isApplicable || item.status === 'SKIPPED') {
       continue;
     }
