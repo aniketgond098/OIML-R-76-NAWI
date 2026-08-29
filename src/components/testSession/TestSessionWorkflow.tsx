@@ -31,7 +31,7 @@ interface Props {
 }
 
 export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onViewReport }) => {
-  const { currentUser, canRecordObservations, canSubmitForReview, canApproveTest } = useAuth();
+  const { currentUser, availableUsers, canRecordObservations, canSubmitForReview, canApproveTest } = useAuth();
   const [session, setSession] = useState<TestSession | undefined>(() => db.getTestSession(sessionId));
 
   if (!session) {
@@ -200,7 +200,29 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               <span className="hidden sm:inline">•</span>
               <span>Standard: <strong className="text-slate-800 font-mono">{session.standardEdition}</strong></span>
               <span className="hidden sm:inline">•</span>
-              <span>Technician: <strong className="text-slate-800">{session.technicianName}</strong></span>
+              <span className="inline-flex items-center gap-1">
+                <span>Technician:</span>
+                {!isReadOnly ? (
+                  <select
+                    value={session.technicianId}
+                    onChange={(e) => {
+                      const u = availableUsers.find((user) => user.id === e.target.value);
+                      if (u) {
+                        saveUpdatedSession({ technicianId: u.id, technicianName: u.fullName });
+                      }
+                    }}
+                    className="text-xs font-bold text-slate-800 bg-slate-50 border border-slate-300 rounded px-1.5 py-0.5 focus:ring-1 focus:ring-indigo-500"
+                  >
+                    {availableUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.fullName} ({u.role.replace('_', ' ')})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <strong className="text-slate-800">{session.technicianName}</strong>
+                )}
+              </span>
             </div>
           </div>
 

@@ -18,16 +18,23 @@ export const NewTestSessionModal: React.FC<Props> = ({
   onSessionCreated,
   preselectedInstrumentId,
 }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, availableUsers } = useAuth();
   const instruments = db.getInstruments();
+  const technicians = availableUsers.filter((u) => u.role === 'LAB_TECHNICIAN' || u.role === 'ADMIN');
+  const defaultTechId = currentUser.role === 'LAB_TECHNICIAN' 
+    ? currentUser.id 
+    : (technicians[0]?.id || currentUser.id);
+
   const [selectedInstId, setSelectedInstId] = useState(preselectedInstrumentId || instruments[0]?.id || '');
+  const [selectedTechId, setSelectedTechId] = useState(defaultTechId);
   const [sessionNotes, setSessionNotes] = useState('');
 
   const selectedInst = instruments.find((i) => i.id === selectedInstId);
+  const selectedTech = availableUsers.find((u) => u.id === selectedTechId) || currentUser;
 
   const handleStart = () => {
     if (!selectedInstId) return;
-    const session = db.createTestSession(selectedInstId, currentUser);
+    const session = db.createTestSession(selectedInstId, currentUser, selectedTech);
     onSessionCreated(session);
   };
 
@@ -68,6 +75,24 @@ export const NewTestSessionModal: React.FC<Props> = ({
             </div>
           </div>
         )}
+
+        <div>
+          <label className="text-slate-700 font-bold block mb-1">Assigned Testing Technician (Testing Officer) *</label>
+          <select
+            value={selectedTechId}
+            onChange={(e) => setSelectedTechId(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
+          >
+            {availableUsers.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.fullName} — {u.designation} ({u.role.replace('_', ' ')})
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-slate-500 mt-1">
+            The legal metrology officer actively recording observations on the test bench.
+          </p>
+        </div>
 
         <div>
           <label className="text-slate-700 font-bold block mb-1">Governing Standard Edition</label>

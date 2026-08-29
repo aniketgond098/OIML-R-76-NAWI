@@ -85,6 +85,21 @@ class MetrologyDatabase {
       load<UserProfile>(KEYS.USERS).forEach((x) => this.users.set(x.id, x));
       load<Attachment>(KEYS.ATTACHMENTS).forEach((x) => this.attachments.set(x.id, x));
 
+      // Sanitize technician vs reviewer role separation in existing records
+      this.testSessions.forEach((s) => {
+        if (s.technicianId === 'USR-REV-01' || s.technicianName === 'Dr. Rajesh Verma') {
+          const tech = SEED_USERS.find((u) => u.role === 'LAB_TECHNICIAN') || SEED_USERS[0];
+          s.technicianId = tech.id;
+          s.technicianName = tech.fullName;
+        }
+      });
+      this.reports.forEach((r) => {
+        if (r.technicianName === 'Dr. Rajesh Verma' && r.reviewerName === 'Dr. Rajesh Verma') {
+          const tech = SEED_USERS.find((u) => u.role === 'LAB_TECHNICIAN') || SEED_USERS[0];
+          r.technicianName = tech.fullName;
+        }
+      });
+
       const counters = localStorage.getItem(KEYS.COUNTERS);
       if (counters) {
         const parsed = JSON.parse(counters);
@@ -449,9 +464,12 @@ class MetrologyDatabase {
     return `NAWI-RPT-${year}-${numStr}`;
   }
 
-  public createTestSession(instrumentId: string, actor: UserProfile): TestSession {
+  public createTestSession(instrumentId: string, actor: UserProfile, technicianUser?: UserProfile): TestSession {
     const inst = this.instruments.get(instrumentId);
     if (!inst) throw new Error('Instrument not found');
+
+    const defaultTech = SEED_USERS.find((u) => u.role === 'LAB_TECHNICIAN') || actor;
+    const techToAssign = technicianUser || (actor.role === 'LAB_TECHNICIAN' ? actor : defaultTech);
 
     const testPlan = generateTestPlanForInstrument(inst);
     const testSessionNumber = this.generateNextTestNumber();
@@ -474,8 +492,8 @@ class MetrologyDatabase {
         numberOfSupportPoints: inst.numberOfSupportPoints,
       },
       laboratoryId: inst.laboratoryId || 'LAB-IND-001',
-      technicianId: actor.id,
-      technicianName: actor.fullName,
+      technicianId: techToAssign.id,
+      technicianName: techToAssign.fullName,
       standardEdition: 'OIML R 76-1:2006',
       ruleSetVersion: 'OIML-R76-2006-v1.0',
       status: 'DRAFT',
