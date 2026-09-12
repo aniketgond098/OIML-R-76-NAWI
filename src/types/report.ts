@@ -6,13 +6,22 @@ import { TestEquipment } from './equipment';
 export interface Attachment {
   id: string;
   name: string;
-  fileType: 'image/jpeg' | 'image/png' | 'application/pdf' | 'text/plain';
+  fileType: string;
   sizeBytes: number;
   dataUrl: string; // Base64 or Blob storage URL
   uploadedBy: string;
   uploadedAt: string;
-  category: 'INSTRUMENT_PHOTO' | 'CALIBRATION_CERT' | 'SCHEMATIC' | 'TEST_SETUP' | 'SUPPORTING_DOC';
-  associatedEntity: 'INSTRUMENT' | 'TEST_SESSION' | 'REPORT';
+  category:
+    | 'INSTRUMENT_PHOTO'
+    | 'NAMEPLATE_PHOTO'
+    | 'SEAL_PHOTO'
+    | 'DEFECT_PHOTO'
+    | 'CALIBRATION_CERT'
+    | 'SCHEMATIC'
+    | 'TEST_SETUP'
+    | 'SUPPORTING_DOC'
+    | string;
+  associatedEntity: 'INSTRUMENT' | 'TEST_SESSION' | 'REPORT' | 'EQUIPMENT';
   associatedEntityId: string;
 }
 

@@ -19,6 +19,7 @@ import {
 import { StatusBadge } from '../common/StatusBadge';
 import { ComplianceBadge } from '../common/ComplianceBadge';
 import { generateTestReportPDF } from '../../services/export/pdfExport';
+import { AttachmentManager } from '../common/AttachmentManager';
 
 interface Props {
   instrumentId: string;
@@ -42,7 +43,7 @@ export const InstrumentDetail: React.FC<Props> = ({
   const testSessions = db.getTestSessionsForInstrument(instrumentId);
   const reports = db.getReportsForInstrument(instrumentId);
 
-  const [activeTab, setActiveTab] = useState<'specs' | 'tests' | 'reports' | 'components'>('specs');
+  const [activeTab, setActiveTab] = useState<'specs' | 'tests' | 'reports' | 'attachments'>('specs');
 
   if (!inst) {
     return (
@@ -112,6 +113,7 @@ export const InstrumentDetail: React.FC<Props> = ({
             { id: 'specs', label: 'Technical Specs' },
             { id: 'tests', label: `Test Sessions (${testSessions.length})` },
             { id: 'reports', label: `Official Reports (${reports.length})` },
+            { id: 'attachments', label: 'Photos & Attachments' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -281,6 +283,15 @@ export const InstrumentDetail: React.FC<Props> = ({
             )}
           </div>
         </div>
+      )}
+
+      {/* Tab 4: Photos & Attachments */}
+      {activeTab === 'attachments' && (
+        <AttachmentManager
+          entityType="INSTRUMENT"
+          entityId={inst.id}
+          readOnly={!canCreateInstrument}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { db } from '../../services/storage/database';
+import { SyncStatusBadge } from './SyncStatusBadge';
 import {
   Scale,
   ShieldCheck,
@@ -89,6 +90,9 @@ export const Navbar: React.FC<Props> = ({
 
       {/* Role Switcher, Official Rules Button & User Profile Controls */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        {/* Cloud & Local Storage Sync Status Badge */}
+        <SyncStatusBadge />
+
         {/* Direct Official OIML Rules Button */}
         <a
           id="navbar-official-rules-btn"

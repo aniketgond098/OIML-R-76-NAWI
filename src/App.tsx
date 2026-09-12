@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './services/auth/authContext';
 import { Navbar } from './components/common/Navbar';
+import { NetworkBanner } from './components/common/NetworkBanner';
 import { Sidebar, MainNavTab } from './components/common/Sidebar';
 import { DashboardView } from './components/dashboard/DashboardView';
 import { InstrumentList } from './components/instruments/InstrumentList';
@@ -90,6 +91,9 @@ function AppContent() {
         isMobileSidebarOpen={isMobileSidebarOpen}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
       />
+
+      {/* Network Connectivity & Offline / Sync Alert Banner */}
+      <NetworkBanner />
 
       {/* Main Workspace Layout */}
       <div className="flex flex-row flex-1 min-h-0 min-w-0 w-full overflow-hidden items-stretch">

@@ -65,6 +65,12 @@ export interface Instrument {
   // Relations
   laboratoryId: string;
   components: InstrumentComponent[];
+  
+  // Public Verification & QR Code
+  publicVerificationId?: string; // Stable UUID for public QR lookup
+  qrEnabled?: boolean; // Whether public QR verification is active (default true)
+  qrGeneratedAt?: string; // Timestamp when QR was first generated or regenerated
+
   createdAt: string;
   updatedAt: string;
 }

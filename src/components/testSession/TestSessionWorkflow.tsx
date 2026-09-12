@@ -11,6 +11,8 @@ import { ZeroTareTestTab } from './tabs/ZeroTareTestTab';
 import { EnvironmentalTestTab } from './tabs/EnvironmentalTestTab';
 import { ComplianceBadge } from '../common/ComplianceBadge';
 import { StatusBadge } from '../common/StatusBadge';
+import { SessionSyncBadge } from '../common/SessionSyncBadge';
+import { AttachmentManager } from '../common/AttachmentManager';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -22,6 +24,7 @@ import {
   Layers,
   Thermometer,
   ListChecks,
+  Camera,
 } from 'lucide-react';
 
 interface Props {
@@ -45,7 +48,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
     );
   }
 
-  const [activeWorkflowTab, setActiveWorkflowTab] = useState<'weighing' | 'repeatability' | 'eccentricity' | 'zerotare' | 'environmental' | 'review'>('weighing');
+  const [activeWorkflowTab, setActiveWorkflowTab] = useState<
+    'weighing' | 'repeatability' | 'eccentricity' | 'zerotare' | 'environmental' | 'attachments' | 'review'
+  >('weighing');
   const [saveToast, setSaveToast] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
 
@@ -235,6 +240,10 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Compliance</span>
               <ComplianceBadge status={session.overallCompliance} size="md" />
             </div>
+            <div className="text-right pl-3 border-l border-slate-200 hidden sm:block">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Storage Safety</span>
+              <SessionSyncBadge sessionId={session.id} />
+            </div>
           </div>
         </div>
 
@@ -246,7 +255,8 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             { id: 'eccentricity', label: '3. Eccentricity', icon: Layers, count: session.eccentricityObservations?.length || 0 },
             { id: 'zerotare', label: '4. Zero & Tare', icon: ShieldCheck },
             { id: 'environmental', label: '5. Environmental Span', icon: Thermometer },
-            { id: 'review', label: '6. Compliance Audit & Decision', icon: CheckCircle2 },
+            { id: 'attachments', label: '6. Evidence & Photos', icon: Camera, count: session.attachmentIds?.length || 0 },
+            { id: 'review', label: '7. Compliance Audit & Decision', icon: CheckCircle2 },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeWorkflowTab === tab.id;
@@ -332,6 +342,14 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             session={session}
             isReadOnly={isReadOnly}
             onUpdateEnvironmentalReadings={(environmentalReadings) => saveUpdatedSession({ environmentalReadings })}
+          />
+        )}
+
+        {activeWorkflowTab === 'attachments' && (
+          <AttachmentManager
+            entityType="TEST_SESSION"
+            entityId={session.id}
+            readOnly={isReadOnly}
           />
         )}
 

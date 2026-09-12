@@ -18,7 +18,11 @@ export type AuditActionType =
   | 'RULE_STATUS_CHANGED'
   | 'ATTACHMENT_UPLOADED'
   | 'ATTACHMENT_DELETED'
-  | 'EQUIPMENT_CALIBRATION_UPDATED';
+  | 'EQUIPMENT_CALIBRATION_UPDATED'
+  | 'QR_CREATED'
+  | 'QR_REGENERATED'
+  | 'QR_DISABLED'
+  | 'QR_ENABLED';
 
 export interface AuditLogEntry {
   id: string;
