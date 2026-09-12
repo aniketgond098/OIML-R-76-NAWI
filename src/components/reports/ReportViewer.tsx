@@ -28,8 +28,8 @@ interface Props {
 }
 
 export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
-  const lab = db.getLaboratory('LAB-IND-001')!;
   const report = db.getReport(reportId);
+  const lab = (report && db.getLaboratory(report.laboratoryId)) || db.getLaboratory('LAB-IND-001') || db.getLaboratories()[0];
   const [copiedHash, setCopiedHash] = useState(false);
   const [activeExplanation, setActiveExplanation] = useState<CalculationExplanation | null>(null);
 

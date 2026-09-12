@@ -18,7 +18,8 @@ export class VerificationService {
     const verifiedAt = new Date().toISOString();
 
     // Strategy 1: If Supabase is configured, attempt authoritative Cloud lookup
-    if (isSupabaseConfigured() && navigator.onLine) {
+    const isOnline = typeof navigator !== 'undefined' ? (navigator.onLine ?? true) : true;
+    if (isSupabaseConfigured() && isOnline) {
       try {
         const cloudResult = await this.querySupabase(publicId);
         if (cloudResult) {
@@ -137,27 +138,31 @@ export class VerificationService {
     }
 
     // Direct table query fallback with strict safe column selection
-    const { data: instData, error: instError } = await supabase
+    // 1. First check matching by exact ID
+    const { data: instData } = await supabase
       .from('instruments')
       .select('id, instrument_id_tag, manufacturer, model, serial_number, accuracy_class, max_capacity, min_capacity, verification_scale_interval, actual_scale_interval, unit, pattern_approval_number, full_data')
-      .or(`public_verification_id.eq.${publicId},id.eq.${publicId}`)
+      .eq('id', publicId)
       .limit(1)
       .maybeSingle();
 
-    if (instError || !instData) {
-      // Also try matching within full_data->>'publicVerificationId'
-      const { data: jsonMatch } = await supabase
-        .from('instruments')
-        .select('id, instrument_id_tag, manufacturer, model, serial_number, accuracy_class, max_capacity, min_capacity, verification_scale_interval, actual_scale_interval, unit, pattern_approval_number, full_data')
-        .contains('full_data', { publicVerificationId: publicId })
-        .limit(1)
-        .maybeSingle();
+    if (instData) {
+      return this.buildResultFromSupabaseRows(instData);
+    }
 
-      if (!jsonMatch) return null;
+    // 2. Next check within full_data->>'publicVerificationId'
+    const { data: jsonMatch } = await supabase
+      .from('instruments')
+      .select('id, instrument_id_tag, manufacturer, model, serial_number, accuracy_class, max_capacity, min_capacity, verification_scale_interval, actual_scale_interval, unit, pattern_approval_number, full_data')
+      .contains('full_data', { publicVerificationId: publicId })
+      .limit(1)
+      .maybeSingle();
+
+    if (jsonMatch) {
       return this.buildResultFromSupabaseRows(jsonMatch);
     }
 
-    return this.buildResultFromSupabaseRows(instData);
+    return null;
   }
 
   private async buildResultFromSupabaseRows(instRow: any) {
@@ -199,7 +204,7 @@ export class VerificationService {
     const reports = reportsData || [];
     
     // Find latest finalized/approved report
-    const latestFinalized = reports.find((r) => r.isApproved === true || r.is_approved === true);
+    const latestFinalized = reports.find((r) => r.is_approved === true || (r.full_data as any)?.isApproved === true);
 
     // Also check if there is an active test session under review
     const { data: latestSession } = await supabase
@@ -214,16 +219,19 @@ export class VerificationService {
       latestSession &&
       (latestSession.status === 'UNDER_REVIEW' || latestSession.status === 'IN_PROGRESS');
 
-    const history: PublicTestHistoryItem[] = reports.map((r) => ({
-      id: r.id,
-      reportNumber: r.report_number,
-      date: r.generated_at,
-      compliance: r.overall_compliance,
-      isApproved: r.is_approved || r.isApproved,
-      statusText: (r.is_approved || r.isApproved)
-        ? (r.overall_compliance === 'PASS' ? 'PASSED' : 'FAILED')
-        : 'PENDING',
-    }));
+    const history: PublicTestHistoryItem[] = reports.map((r) => {
+      const approved = Boolean(r.is_approved || (r.full_data as any)?.isApproved);
+      return {
+        id: r.id,
+        reportNumber: r.report_number,
+        date: r.generated_at,
+        compliance: r.overall_compliance,
+        isApproved: approved,
+        statusText: approved
+          ? (r.overall_compliance === 'PASS' ? 'PASSED' : 'FAILED')
+          : 'PENDING',
+      };
+    });
 
     let status: PublicVerificationStatus = 'NO_VALID_REPORT';
     if (latestFinalized) {
@@ -299,7 +307,7 @@ export class VerificationService {
       actualScaleInterval: inst.actualScaleInterval,
       unit: inst.unit,
       patternApprovalNumber: inst.patternApprovalNumber,
-      qrEnabled: inst.qrEnabled !== false,
+      qrEnabled: inst.qrEnabled ?? true,
     };
 
     // Reports for this instrument

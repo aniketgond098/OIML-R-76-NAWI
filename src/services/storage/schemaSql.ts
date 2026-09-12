@@ -129,6 +129,9 @@ CREATE TABLE IF NOT EXISTS instruments (
   marking_details TEXT,
   notes TEXT,
   laboratory_id TEXT REFERENCES laboratories(id) ON DELETE SET NULL,
+  public_verification_id TEXT UNIQUE,
+  qr_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  qr_generated_at TIMESTAMPTZ,
   components JSONB NOT NULL DEFAULT '[]'::jsonb,
   full_data JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -140,6 +143,7 @@ CREATE INDEX IF NOT EXISTS idx_instruments_tag ON instruments(instrument_id_tag)
 CREATE INDEX IF NOT EXISTS idx_instruments_accuracy_class ON instruments(accuracy_class);
 CREATE INDEX IF NOT EXISTS idx_instruments_serial ON instruments(serial_number);
 CREATE INDEX IF NOT EXISTS idx_instruments_laboratory_id ON instruments(laboratory_id);
+CREATE INDEX IF NOT EXISTS idx_instruments_public_verification_id ON instruments(public_verification_id);
 
 -- ==============================================================================
 -- 5. TEST EQUIPMENT / REFERENCE STANDARDS (OIML Weights, Sensors)
@@ -379,4 +383,133 @@ DROP POLICY IF EXISTS "Allow update on nawi-attachments" ON storage.objects;
 CREATE POLICY "Allow update on nawi-attachments"
 ON storage.objects FOR UPDATE
 USING (bucket_id = 'nawi-attachments');
+
+-- ==============================================================================
+-- 13. PUBLIC SECURE VERIFICATION RPC (Zero-Trust Public Status Lookup)
+-- ==============================================================================
+CREATE OR REPLACE FUNCTION get_public_instrument_verification(p_verification_id TEXT)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_instrument RECORD;
+  v_latest_report RECORD;
+  v_latest_session RECORD;
+  v_history JSONB;
+  v_status TEXT;
+  v_result JSONB;
+BEGIN
+  SELECT id, instrument_id_tag, manufacturer, model, serial_number,
+         accuracy_class, max_capacity, min_capacity, verification_scale_interval,
+         actual_scale_interval, unit, number_of_intervals, pattern_approval_number,
+         public_verification_id, qr_enabled, laboratory_id
+  INTO v_instrument
+  FROM instruments
+  WHERE public_verification_id = p_verification_id OR id = p_verification_id
+  LIMIT 1;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object(
+      'status', 'INSTRUMENT_NOT_FOUND',
+      'message', 'No weighing instrument registered with this verification code.',
+      'history', '[]'::jsonb
+    );
+  END IF;
+
+  IF v_instrument.qr_enabled = false THEN
+    RETURN jsonb_build_object(
+      'status', 'QR_DISABLED',
+      'message', 'Public QR verification has been disabled or revoked for this instrument.',
+      'history', '[]'::jsonb
+    );
+  END IF;
+
+  SELECT id, report_number, current_revision, standard_edition, is_approved,
+         overall_compliance, compliance_statement, sha256_integrity_hash, generated_at
+  INTO v_latest_report
+  FROM reports
+  WHERE instrument_id = v_instrument.id AND is_approved = true
+  ORDER BY generated_at DESC
+  LIMIT 1;
+
+  SELECT id, test_session_number, status, updated_at, created_at
+  INTO v_latest_session
+  FROM test_sessions
+  WHERE instrument_id = v_instrument.id
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  IF v_latest_session.status IN ('UNDER_REVIEW', 'IN_PROGRESS', 'COMPLETED')
+     AND (v_latest_report.id IS NULL OR v_latest_session.created_at > v_latest_report.generated_at) THEN
+    v_status := 'UNDER_REVIEW';
+  ELSIF v_latest_report.id IS NOT NULL THEN
+    IF v_latest_report.overall_compliance = 'PASS' THEN
+      v_status := 'PASSED';
+    ELSE
+      v_status := 'FAILED';
+    END IF;
+  ELSE
+    v_status := 'NO_VALID_REPORT';
+  END IF;
+
+  SELECT COALESCE(jsonb_agg(
+    jsonb_build_object(
+      'id', r.id,
+      'reportNumber', r.report_number,
+      'date', r.generated_at,
+      'compliance', r.overall_compliance,
+      'isApproved', r.is_approved,
+      'statusText', CASE WHEN r.is_approved AND r.overall_compliance = 'PASS' THEN 'PASSED'
+                         WHEN r.is_approved THEN 'FAILED'
+                         ELSE 'PENDING' END
+    ) ORDER BY r.generated_at DESC
+  ), '[]'::jsonb)
+  INTO v_history
+  FROM reports r
+  WHERE r.instrument_id = v_instrument.id;
+
+  v_result := jsonb_build_object(
+    'status', v_status,
+    'instrument', jsonb_build_object(
+      'id', v_instrument.id,
+      'instrumentIdTag', v_instrument.instrument_id_tag,
+      'manufacturer', v_instrument.manufacturer,
+      'model', v_instrument.model,
+      'serialNumber', v_instrument.serial_number,
+      'accuracyClass', v_instrument.accuracy_class,
+      'maxCapacity', v_instrument.max_capacity,
+      'minCapacity', v_instrument.min_capacity,
+      'verificationScaleInterval', v_instrument.verification_scale_interval,
+      'actualScaleInterval', v_instrument.actual_scale_interval,
+      'unit', v_instrument.unit,
+      'numberOfIntervals', v_instrument.number_of_intervals,
+      'patternApprovalNumber', v_instrument.pattern_approval_number,
+      'publicVerificationId', v_instrument.public_verification_id,
+      'qrEnabled', v_instrument.qr_enabled
+    ),
+    'latestFinalizedReport', CASE WHEN v_latest_report.id IS NOT NULL THEN jsonb_build_object(
+      'id', v_latest_report.id,
+      'reportNumber', v_latest_report.report_number,
+      'currentRevision', v_latest_report.current_revision,
+      'standardEdition', v_latest_report.standard_edition,
+      'isApproved', true,
+      'overallCompliance', v_latest_report.overall_compliance,
+      'complianceStatement', v_latest_report.compliance_statement,
+      'sha256IntegrityHash', v_latest_report.sha256_integrity_hash,
+      'generatedAt', v_latest_report.generated_at
+    ) ELSE NULL END,
+    'pendingSession', CASE WHEN v_latest_session.status IN ('UNDER_REVIEW', 'IN_PROGRESS', 'COMPLETED')
+                                AND (v_latest_report.id IS NULL OR v_latest_session.created_at > v_latest_report.generated_at)
+      THEN jsonb_build_object(
+        'testSessionNumber', v_latest_session.test_session_number,
+        'status', v_latest_session.status,
+        'updatedAt', v_latest_session.updated_at
+      ) ELSE NULL END,
+    'history', v_history
+  );
+
+  RETURN v_result;
+END;
+$$;
 `;

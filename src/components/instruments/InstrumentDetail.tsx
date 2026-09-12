@@ -37,9 +37,8 @@ export const InstrumentDetail: React.FC<Props> = ({
   onSelectReport,
 }) => {
   const { canCreateInstrument } = useAuth();
-  const lab = db.getLaboratory('LAB-IND-001')!;
-
   const inst = db.getInstrument(instrumentId);
+  const lab = (inst && db.getLaboratory(inst.laboratoryId)) || db.getLaboratory('LAB-IND-001') || db.getLaboratories()[0];
   const testSessions = db.getTestSessionsForInstrument(instrumentId);
   const reports = db.getReportsForInstrument(instrumentId);
 

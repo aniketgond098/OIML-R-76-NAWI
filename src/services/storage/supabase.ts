@@ -78,6 +78,8 @@ export function getSupabaseClient(): SupabaseClient | null {
   return clientInstance;
 }
 
+export const supabase: SupabaseClient | null = getSupabaseClient();
+
 export class SupabaseService {
   public async checkDatabaseHealth(): Promise<{
     reachable: boolean;

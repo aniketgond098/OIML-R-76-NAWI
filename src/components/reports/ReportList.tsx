@@ -16,7 +16,7 @@ export const ReportList: React.FC<Props> = ({ onSelectReport }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [resultFilter, setResultFilter] = useState<string>('ALL');
 
-  const lab = db.getLaboratory('LAB-IND-001')!;
+  const lab = db.getLaboratory('LAB-IND-001') || db.getLaboratories()[0];
   const reports = db.getReports();
 
   const filtered = reports.filter((r) => {

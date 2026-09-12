@@ -12,25 +12,34 @@ import {
   ChevronRight,
   ShieldCheck,
   Eye,
+  QrCode,
+  Printer,
 } from 'lucide-react';
 import { EmptyState } from '../common/EmptyState';
+import { PrintableQRLabelModal } from '../verification/PrintableQRLabelModal';
 
 interface Props {
   onSelectInstrument: (id: string) => void;
   onStartNewTest: (instrumentId: string) => void;
   onOpenNewWizard: () => void;
+  onOpenScanModal?: () => void;
+  onNavigateToVerification?: (publicId: string) => void;
 }
 
 export const InstrumentList: React.FC<Props> = ({
   onSelectInstrument,
   onStartNewTest,
   onOpenNewWizard,
+  onOpenScanModal,
+  onNavigateToVerification,
 }) => {
   const { canCreateInstrument } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('ALL');
+  const [selectedInstrumentForQR, setSelectedInstrumentForQR] = useState<Instrument | null>(null);
 
   const instruments = db.getInstruments();
+
 
   const filteredInstruments = instruments.filter((inst) => {
     const matchesSearch =
@@ -65,16 +74,30 @@ export const InstrumentList: React.FC<Props> = ({
           </p>
         </div>
 
-        {canCreateInstrument && (
-          <button
-            id="register-instrument-btn"
-            onClick={onOpenNewWizard}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors self-start sm:self-auto"
-          >
-            <Plus size={16} />
-            Register New Instrument
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {onOpenScanModal && (
+            <button
+              id="list-scan-qr-btn"
+              onClick={onOpenScanModal}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 shadow-2xs transition-colors"
+              title="Scan physical QR code sticker to verify instrument"
+            >
+              <QrCode size={16} className="text-indigo-600" />
+              <span>Scan QR Code</span>
+            </button>
+          )}
+
+          {canCreateInstrument && (
+            <button
+              id="register-instrument-btn"
+              onClick={onOpenNewWizard}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors self-start sm:self-auto"
+            >
+              <Plus size={16} />
+              Register New Instrument
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
@@ -177,6 +200,18 @@ export const InstrumentList: React.FC<Props> = ({
 
                     <td className="p-3.5 pr-5 text-right space-x-2">
                       <button
+                        id={`btn-qr-inst-${inst.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedInstrumentForQR(inst);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-md transition-colors"
+                        title="Print QR Sticker Label"
+                      >
+                        <QrCode size={13} className="text-indigo-600" />
+                        <span className="hidden sm:inline">QR Sticker</span>
+                      </button>
+                      <button
                         id={`btn-view-inst-${inst.id}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -207,6 +242,15 @@ export const InstrumentList: React.FC<Props> = ({
             </table>
           </div>
         </div>
+      )}
+
+      {/* Modal: Physical Printable QR Label */}
+      {selectedInstrumentForQR && (
+        <PrintableQRLabelModal
+          instrument={selectedInstrumentForQR}
+          onClose={() => setSelectedInstrumentForQR(null)}
+          onNavigateToVerification={onNavigateToVerification}
+        />
       )}
     </div>
   );

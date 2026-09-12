@@ -121,3 +121,27 @@ export function downloadDataUrl(dataUrl: string, fileName: string): void {
   link.click();
   document.body.removeChild(link);
 }
+
+export const qrService = {
+  generatePublicVerificationId,
+  buildVerificationUrl,
+  extractVerificationId,
+  generateQRCodeDataUrl,
+  generateDataUrl: (
+    text: string,
+    options?: {
+      width?: number;
+      margin?: number;
+      color?: { dark?: string; light?: string };
+    }
+  ) =>
+    generateQRCodeDataUrl(buildVerificationUrl(text), {
+      width: options?.width,
+      margin: options?.margin,
+      darkColor: options?.color?.dark,
+      lightColor: options?.color?.light,
+    }),
+  generateQRCodeSvg,
+  downloadDataUrl,
+};
+

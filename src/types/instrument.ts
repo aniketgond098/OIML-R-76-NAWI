@@ -4,6 +4,7 @@ export type InstrumentType =
   | 'Electronic Balance'
   | 'Bench Scale'
   | 'Floor / Platform Scale'
+  | 'Industrial Platform Scale'
   | 'Weighbridge'
   | 'Crane Scale'
   | 'Hopper / Tank Scale'

@@ -55,11 +55,26 @@ export class StorageService {
     this.init();
   }
 
+  public async initialize(): Promise<void> {
+    return this.init();
+  }
+
   public async init(): Promise<void> {
     if (this.initPromise) return this.initPromise;
 
     this.initPromise = (async () => {
       try {
+        // Step 0: In non-browser (Node/Vitest) environment where indexedDB is unavailable
+        if (typeof indexedDB === 'undefined') {
+          SEED_INSTRUMENTS.forEach((inst) => this.instruments.set(inst.id, inst));
+          SEED_USERS.forEach((u) => this.users.set(u.id, u));
+          SEED_EQUIPMENT.forEach((eq) => this.equipment.set(eq.id, eq));
+          this.laboratories.set(SEED_LABORATORY.id, SEED_LABORATORY);
+          await this.seedInitialData();
+          this.isInitialized = true;
+          return;
+        }
+
         // Step 1: Run migration check from legacy localStorage to IndexedDB
         await migrationService.checkAndRunMigration();
 
@@ -152,12 +167,14 @@ export class StorageService {
     SEED_EQUIPMENT.forEach((eq) => this.equipment.set(eq.id, eq));
     SEED_INSTRUMENTS.forEach((inst) => this.instruments.set(inst.id, inst));
 
-    await Promise.all([
-      indexedDBService.put('laboratories', SEED_LABORATORY),
-      indexedDBService.putMany('users', SEED_USERS),
-      indexedDBService.putMany('equipment', SEED_EQUIPMENT),
-      indexedDBService.putMany('instruments', SEED_INSTRUMENTS),
-    ]);
+    if (typeof indexedDB !== 'undefined') {
+      await Promise.all([
+        indexedDBService.put('laboratories', SEED_LABORATORY),
+        indexedDBService.putMany('users', SEED_USERS),
+        indexedDBService.putMany('equipment', SEED_EQUIPMENT),
+        indexedDBService.putMany('instruments', SEED_INSTRUMENTS),
+      ]);
+    }
 
     // Create 1 realistic pre-calculated completed test session and 1 approved report
     const inst = SEED_INSTRUMENTS[1];
@@ -376,7 +393,9 @@ export class StorageService {
     };
 
     this.testSessions.set(sampleTestSession.id, sampleTestSession);
-    await indexedDBService.put('testSessions', sampleTestSession);
+    if (typeof indexedDB !== 'undefined') {
+      await indexedDBService.put('testSessions', sampleTestSession);
+    }
 
     const sampleReport = generateTestReport({
       testSession: sampleTestSession,
@@ -390,11 +409,15 @@ export class StorageService {
     sampleReport.reportNumber = 'NAWI-RPT-2026-000001';
 
     this.reports.set(sampleReport.id, sampleReport);
-    await indexedDBService.put('reports', sampleReport);
+    if (typeof indexedDB !== 'undefined') {
+      await indexedDBService.put('reports', sampleReport);
+    }
 
     this.reportCounter = 2;
     this.testCounter = 2;
-    await this.persistCounters();
+    if (typeof indexedDB !== 'undefined') {
+      await this.persistCounters();
+    }
 
     // Queue baseline records for cloud sync
     this.queueSync('LABORATORY', SEED_LABORATORY.id, 'CREATE', SEED_LABORATORY);
@@ -1045,6 +1068,10 @@ export class StorageService {
 
   public getLaboratory(id: string): Laboratory | undefined {
     return this.laboratories.get(id) || SEED_LABORATORY;
+  }
+
+  public getLaboratories(): Laboratory[] {
+    return Array.from(this.laboratories.values());
   }
 
   // --- Connectivity & Sync Engine Subscriptions ---

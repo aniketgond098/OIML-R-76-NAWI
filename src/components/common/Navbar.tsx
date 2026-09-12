@@ -12,17 +12,20 @@ import {
   X,
   ExternalLink,
   BookOpen,
+  QrCode,
 } from 'lucide-react';
 import { UserRole } from '../../types/user';
 
 interface Props {
   onOpenLoginModal: () => void;
+  onOpenScanModal?: () => void;
   isMobileSidebarOpen?: boolean;
   onToggleMobileSidebar?: () => void;
 }
 
 export const Navbar: React.FC<Props> = ({
   onOpenLoginModal,
+  onOpenScanModal,
   isMobileSidebarOpen = false,
   onToggleMobileSidebar,
 }) => {
@@ -92,6 +95,19 @@ export const Navbar: React.FC<Props> = ({
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Cloud & Local Storage Sync Status Badge */}
         <SyncStatusBadge />
+
+        {/* Global QR Code Scanner Button */}
+        {onOpenScanModal && (
+          <button
+            id="navbar-scan-qr-btn"
+            onClick={onOpenScanModal}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 shadow-2xs transition-colors"
+            title="Scan physical QR code sticker to verify instrument"
+          >
+            <QrCode size={14} className="text-indigo-600" />
+            <span className="hidden sm:inline">Scan QR</span>
+          </button>
+        )}
 
         {/* Direct Official OIML Rules Button */}
         <a

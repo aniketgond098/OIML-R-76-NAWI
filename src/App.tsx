@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './services/auth/authContext';
 import { Navbar } from './components/common/Navbar';
 import { NetworkBanner } from './components/common/NetworkBanner';
@@ -17,12 +17,35 @@ import { AuditLogView } from './components/audit/AuditLogView';
 import { MetrologyVerificationSuite } from './components/qa/MetrologyVerificationSuite';
 import { NewTestSessionModal } from './components/testSession/NewTestSessionModal';
 import { LoginModal } from './components/auth/LoginModal';
+import { PublicVerificationView } from './components/verification/PublicVerificationView';
+import { QRScannerModal } from './components/verification/QRScannerModal';
 import { Instrument } from './types/instrument';
 import { TestSession } from './types/testSession';
+
+function getVerificationIdFromUrl(): string | null {
+  try {
+    const pathMatch = window.location.pathname.match(/\/verify\/([^/?#]+)/i);
+    if (pathMatch && pathMatch[1]) return decodeURIComponent(pathMatch[1]);
+    const hashMatch = window.location.hash.match(/#\/?verify\/([^/?#]+)/i);
+    if (hashMatch && hashMatch[1]) return decodeURIComponent(hashMatch[1]);
+    const params = new URLSearchParams(window.location.search);
+    const queryParam = params.get('verify') || params.get('p');
+    if (queryParam) return queryParam;
+  } catch {
+    // Ignore URL parsing errors
+  }
+  return null;
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState<MainNavTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Public QR Verification Route state
+  const [publicVerificationId, setPublicVerificationId] = useState<string | null>(() =>
+    getVerificationIdFromUrl()
+  );
+  const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
 
   // Specific entity drill-down states
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string | null>(null);
@@ -35,6 +58,48 @@ function AppContent() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  // Sync browser back/forward history for QR verification URLs
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const id = getVerificationIdFromUrl();
+      setPublicVerificationId(id);
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
+  const handleNavigateToVerification = (publicId: string) => {
+    setPublicVerificationId(publicId);
+    try {
+      if (typeof window !== 'undefined' && window.history?.pushState) {
+        window.history.pushState({}, '', `/verify/${encodeURIComponent(publicId)}`);
+      }
+    } catch {
+      // Ignore SecurityError in restricted iframe sandboxes
+    }
+  };
+
+  const handleCloseVerification = () => {
+    setPublicVerificationId(null);
+    try {
+      if (
+        typeof window !== 'undefined' &&
+        window.history?.pushState &&
+        (window.location.pathname.includes('/verify') ||
+          window.location.hash.includes('verify') ||
+          window.location.search.includes('verify'))
+      ) {
+        window.history.pushState({}, '', '/');
+      }
+    } catch {
+      // Ignore in restricted iframe sandboxes
+    }
+  };
 
   // Navigation handlers
   const handleNavChange = (tab: MainNavTab) => {
@@ -83,11 +148,39 @@ function AppContent() {
     setIsMobileSidebarOpen(false);
   };
 
+  // If public verification URL is accessed directly or navigated to:
+  if (publicVerificationId) {
+    return (
+      <>
+        <PublicVerificationView
+          publicInstrumentId={publicVerificationId}
+          onBack={handleCloseVerification}
+          onScanAnother={() => setIsQRScannerOpen(true)}
+          onViewInternalInstrument={(internalId) => {
+            handleCloseVerification();
+            handleSelectInstrument(internalId);
+          }}
+        />
+
+        {isQRScannerOpen && (
+          <QRScannerModal
+            onClose={() => setIsQRScannerOpen(false)}
+            onScanSuccess={(scannedId) => {
+              setIsQRScannerOpen(false);
+              handleNavigateToVerification(scannedId);
+            }}
+          />
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="h-screen w-full flex flex-col bg-slate-100 font-sans text-slate-900 antialiased selection:bg-indigo-500 selection:text-white overflow-hidden">
       {/* Top Navigation */}
       <Navbar
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        onOpenScanModal={() => setIsQRScannerOpen(true)}
         isMobileSidebarOpen={isMobileSidebarOpen}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
       />
@@ -139,12 +232,15 @@ function AppContent() {
                   onStartNewTest={handleStartNewTestFromInstrument}
                   onSelectTestSession={handleSelectTestSession}
                   onSelectReport={handleSelectReport}
+                  onNavigateToVerification={handleNavigateToVerification}
                 />
               ) : (
                 <InstrumentList
                   onSelectInstrument={handleSelectInstrument}
                   onStartNewTest={handleStartNewTestFromInstrument}
                   onOpenNewWizard={() => setIsRegisteringInstrument(true)}
+                  onOpenScanModal={() => setIsQRScannerOpen(true)}
+                  onNavigateToVerification={handleNavigateToVerification}
                 />
               )}
             </>
@@ -212,6 +308,17 @@ function AppContent() {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
       />
+
+      {/* Global QR Scanner Modal */}
+      {isQRScannerOpen && (
+        <QRScannerModal
+          onClose={() => setIsQRScannerOpen(false)}
+          onScanSuccess={(scannedId) => {
+            setIsQRScannerOpen(false);
+            handleNavigateToVerification(scannedId);
+          }}
+        />
+      )}
     </div>
   );
 }
