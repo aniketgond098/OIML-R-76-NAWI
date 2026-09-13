@@ -10,6 +10,7 @@ import { EccentricityTestTab } from './tabs/EccentricityTestTab';
 import { ZeroTareTestTab } from './tabs/ZeroTareTestTab';
 import { EnvironmentalTestTab } from './tabs/EnvironmentalTestTab';
 import { SmartSequencingPanel } from './SmartSequencingPanel';
+import { GuidedTestContainer } from './guided/GuidedTestContainer';
 import { testSequencingEngine } from '../../metrology/sequencing/testSequencingEngine';
 import { ComplianceBadge } from '../common/ComplianceBadge';
 import { StatusBadge } from '../common/StatusBadge';
@@ -29,6 +30,7 @@ import {
   Camera,
   Lock,
   Sparkles,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface Props {
@@ -52,6 +54,8 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
     );
   }
 
+  // User can switch between 'guided' (simple step-by-step for technicians) and 'expert' (audit matrix & multi-tab grid)
+  const [viewMode, setViewMode] = useState<'guided' | 'expert'>('guided');
   const [activeWorkflowTab, setActiveWorkflowTab] = useState<
     'sequencing' | 'weighing' | 'repeatability' | 'eccentricity' | 'zerotare' | 'environmental' | 'attachments' | 'review'
   >('sequencing');
@@ -154,12 +158,42 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
     <div id="test-session-workflow" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold"
-        >
-          <ArrowLeft size={16} /> Back to Sessions
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold"
+          >
+            <ArrowLeft size={16} /> Back to Sessions
+          </button>
+
+          {/* Guided Mode vs Expert Mode Switcher */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              id="btn-mode-guided"
+              onClick={() => setViewMode('guided')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                viewMode === 'guided'
+                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles size={13} className={viewMode === 'guided' ? 'text-indigo-600' : 'text-slate-400'} />
+              <span>Guided Mode</span>
+            </button>
+            <button
+              id="btn-mode-expert"
+              onClick={() => setViewMode('expert')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                viewMode === 'expert'
+                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <SlidersHorizontal size={13} className={viewMode === 'expert' ? 'text-indigo-600' : 'text-slate-400'} />
+              <span>Expert Matrix</span>
+            </button>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {saveToast && (
@@ -205,8 +239,18 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
         </div>
       </div>
 
-      {/* Session Metadata Banner */}
-      <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+      {viewMode === 'guided' ? (
+        <GuidedTestContainer
+          session={session}
+          isReadOnly={isReadOnly}
+          onUpdateSession={saveUpdatedSession}
+          onSwitchToExpertView={() => setViewMode('expert')}
+          onViewReport={onViewReport}
+        />
+      ) : (
+        <>
+          {/* Session Metadata Banner */}
+          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
@@ -472,6 +516,8 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
           </div>
         )}
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 };

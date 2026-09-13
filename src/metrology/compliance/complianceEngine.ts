@@ -130,6 +130,51 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           break;
         }
 
+        case 'DISCRIMINATION': {
+          const disc = session.discriminationObservation;
+          if (!disc || disc.indicationAfterLoadI2 === undefined) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else {
+            item.status = 'COMPLETED';
+            item.compliance = disc.compliance || 'PASS';
+          }
+          break;
+        }
+
+        case 'TEMPERATURE_SPAN': {
+          const span = session.temperatureSpanObservation;
+          const envReadings = session.environmentalReadings || [];
+          const hasStartAndEnd =
+            envReadings.length >= 2 &&
+            envReadings.some((r) => r.stage === 'START') &&
+            envReadings.some((r) => r.stage === 'END' || r.stage === 'INTERMEDIATE');
+
+          if (span && span.temperatures && span.temperatures.length >= 2) {
+            item.status = 'COMPLETED';
+            item.compliance = span.compliance || 'PASS';
+          } else if (hasStartAndEnd) {
+            item.status = 'COMPLETED';
+            item.compliance = 'PASS';
+          } else {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          }
+          break;
+        }
+
+        case 'TILTING': {
+          const tilt = session.tiltingObservation;
+          if (!tilt || !tilt.positions || tilt.positions.length === 0) {
+            item.status = 'PENDING';
+            item.compliance = 'NOT_EVALUATED';
+          } else {
+            item.status = 'COMPLETED';
+            item.compliance = tilt.compliance || 'PASS';
+          }
+          break;
+        }
+
         default:
           break;
       }

@@ -1,24 +1,66 @@
 import React, { useState } from 'react';
-import { TestSession, WeighingTestObservation } from '../../../types/testSession';
+import { TestSession, WeighingTestObservation, DiscriminationObservation } from '../../../types/testSession';
 import { calculateWeighingError } from '../../../metrology/calculations/weighing';
+import { calculateDiscrimination } from '../../../metrology/calculations/discrimination';
 import { CalculationModal } from '../../common/CalculationModal';
 import { CalculationExplanation } from '../../../types/metrology';
 import { ComplianceBadge } from '../../common/ComplianceBadge';
-import { Plus, Trash2, Calculator, Info, LineChart as ChartIcon, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Trash2, Calculator, Info, LineChart as ChartIcon, CheckCircle2, XCircle, Eye } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from 'recharts';
 
 interface Props {
   session: TestSession;
   isReadOnly: boolean;
   onUpdateObservations: (observations: WeighingTestObservation[]) => void;
+  onUpdateDiscriminationObservation?: (obs: DiscriminationObservation) => void;
 }
 
-export const WeighingTestTab: React.FC<Props> = ({ session, isReadOnly, onUpdateObservations }) => {
+export const WeighingTestTab: React.FC<Props> = ({
+  session,
+  isReadOnly,
+  onUpdateObservations,
+  onUpdateDiscriminationObservation,
+}) => {
   const inst = session.instrumentSnapshot;
   const observations = session.weighingObservations || [];
 
   const [selectedExplanation, setSelectedExplanation] = useState<CalculationExplanation | null>(null);
   const [showChart, setShowChart] = useState(true);
+
+  // Discrimination Test state
+  const disc = session.discriminationObservation;
+  const d = inst.actualScaleInterval || inst.verificationScaleInterval || 1;
+  const defaultNominalL = disc?.nominalLoadL ?? Math.round((inst.maxCapacity * 0.5) / d) * d;
+  const [discL, setDiscL] = useState<number>(defaultNominalL);
+  const [discI1, setDiscI1] = useState<number>(disc?.initialIndicationI1 ?? defaultNominalL);
+  const [discExtra, setDiscExtra] = useState<number>(disc?.actualExtraLoadApplied ?? 1.4 * d);
+  const [discI2, setDiscI2] = useState<number>(
+    disc?.indicationAfterLoadI2 ?? (disc?.initialIndicationI1 ?? defaultNominalL) + d
+  );
+
+  const discEval = calculateDiscrimination({
+    nominalLoadL: discL,
+    initialIndicationI1: discI1,
+    actualScaleIntervalD: d,
+    additionalLoadApplied: discExtra,
+    indicationAfterAdditionalLoadI2: discI2,
+    unit: inst.unit,
+  });
+
+  const handleSaveDiscrimination = () => {
+    if (!onUpdateDiscriminationObservation) return;
+    onUpdateDiscriminationObservation({
+      nominalLoadL: discL,
+      initialIndicationI1: discI1,
+      actualScaleIntervalD: d,
+      extraLoadRequired: 1.4 * d,
+      actualExtraLoadApplied: discExtra,
+      indicationAfterLoadI2: discI2,
+      indicationChangeDeltaI: discEval.indicationChangeDeltaI,
+      minimumRequiredChange: discEval.minimumRequiredChange,
+      compliance: discEval.compliance,
+    });
+  };
 
   // Helper to re-evaluate zero error E0
   const zeroObs = observations.find((o) => o.nominalLoad === 0 && o.direction === 'ASCENDING');
@@ -417,6 +459,126 @@ export const WeighingTestTab: React.FC<Props> = ({ session, isReadOnly, onUpdate
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Clause 3.8.2.2: Discrimination Test Section */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+        <div className="p-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Clause 3.8.2.2 & A.4.8: Discrimination Test
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
+                1.4 d Digital Threshold
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Extra load of 1.4 d placed on receptor shall cause indication to increase by at least 1.0 d (ΔI ≥ 1.0 d).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold font-mono ${
+                discEval.compliance === 'PASS'
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  : 'bg-rose-100 text-rose-800 border border-rose-300'
+              }`}
+            >
+              {discEval.compliance === 'PASS' ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+              {discEval.compliance} (ΔI = {discEval.indicationChangeDeltaI.toFixed(2)} {inst.unit})
+            </span>
+
+            {!isReadOnly && onUpdateDiscriminationObservation && (
+              <button
+                onClick={handleSaveDiscrimination}
+                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs"
+              >
+                Save Discrimination
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Nominal Load (L)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                disabled={isReadOnly}
+                value={discL}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setDiscL(val);
+                  setDiscI1(val);
+                  setDiscI2(val + d);
+                }}
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg font-mono text-xs"
+              />
+              <span className="absolute right-2.5 top-1.5 text-slate-400 font-mono text-[11px]">{inst.unit}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Initial Indication (I₁)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                disabled={isReadOnly}
+                value={discI1}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value) || 0;
+                  setDiscI1(val);
+                  setDiscI2(val + d);
+                }}
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg font-mono text-xs"
+              />
+              <span className="absolute right-2.5 top-1.5 text-slate-400 font-mono text-[11px]">{inst.unit}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Applied Extra Load (1.4 d)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                disabled={isReadOnly}
+                value={discExtra}
+                onChange={(e) => setDiscExtra(parseFloat(e.target.value) || 0)}
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg font-mono text-xs bg-amber-50/40"
+              />
+              <span className="absolute right-2.5 top-1.5 text-slate-400 font-mono text-[11px]">{inst.unit}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+              Indication with Load (I₂)
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="any"
+                disabled={isReadOnly}
+                value={discI2}
+                onChange={(e) => setDiscI2(parseFloat(e.target.value) || 0)}
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg font-mono text-xs"
+              />
+              <span className="absolute right-2.5 top-1.5 text-slate-400 font-mono text-[11px]">{inst.unit}</span>
+            </div>
+          </div>
         </div>
       </div>
 

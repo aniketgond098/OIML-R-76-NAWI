@@ -116,15 +116,38 @@ export function inspectTestProgressInSession(
 
     case 'TEMPERATURE_SPAN': {
       const obs = session.temperatureSpanObservation;
-      if (!obs || !obs.temperatures || obs.temperatures.length === 0) {
-        return { isCompleted: false, isInProgress: false, compliance: 'NOT_EVALUATED' };
+      if (obs && obs.temperatures && obs.temperatures.length >= 2) {
+        return {
+          isCompleted: true,
+          isInProgress: false,
+          compliance: obs.compliance || 'NOT_EVALUATED',
+        };
       }
-      const isCompleted = obs.temperatures.length >= 2;
-      return {
-        isCompleted,
-        isInProgress: !isCompleted,
-        compliance: obs.compliance || 'NOT_EVALUATED',
-      };
+
+      // Fallback: If environmental readings have at least 2 stages recorded (e.g. START and END)
+      const envReadings = session.environmentalReadings || [];
+      const hasStartAndEnd =
+        envReadings.length >= 2 &&
+        envReadings.some((r) => r.stage === 'START') &&
+        envReadings.some((r) => r.stage === 'END' || r.stage === 'INTERMEDIATE');
+
+      if (hasStartAndEnd) {
+        return {
+          isCompleted: true,
+          isInProgress: false,
+          compliance: 'PASS',
+        };
+      }
+
+      if (envReadings.length > 0 || (obs?.temperatures?.length ?? 0) > 0) {
+        return {
+          isCompleted: false,
+          isInProgress: true,
+          compliance: 'NOT_EVALUATED',
+        };
+      }
+
+      return { isCompleted: false, isInProgress: false, compliance: 'NOT_EVALUATED' };
     }
 
     default:
@@ -171,8 +194,15 @@ export class TestDependencyResolver {
       let executionStatus: SmartTestState = 'NOT_STARTED';
       const blockingReasons: string[] = [];
 
+      // Check if item was explicitly skipped in session.testPlan
+      const isSkippedInPlan = session?.testPlan?.some(
+        (tp) => (tp.category === rule.testCategory || tp.name === rule.name) && tp.status === 'SKIPPED'
+      );
+
       // Check applicability barriers
-      if (appResult.status === 'NOT_APPLICABLE') {
+      if (isSkippedInPlan && !rule.isMandatory) {
+        executionStatus = 'NOT_APPLICABLE';
+      } else if (appResult.status === 'NOT_APPLICABLE') {
         executionStatus = 'NOT_APPLICABLE';
       } else if (appResult.status === 'INSUFFICIENT_DATA') {
         executionStatus = 'INSUFFICIENT_DATA';
