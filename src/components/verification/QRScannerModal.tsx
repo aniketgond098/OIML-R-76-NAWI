@@ -188,14 +188,14 @@ export const QRScannerModal: React.FC<Props> = ({ onClose, onScanSuccess }) => {
   return (
     <div
       id="qr-scanner-modal-overlay"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/75 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto p-3 sm:p-4 bg-slate-900/75 backdrop-blur-xs flex items-center justify-center"
     >
       <div
         id="qr-scanner-modal-content"
-        className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto"
+        className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto"
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
               <QrCode size={18} />
@@ -221,7 +221,7 @@ export const QRScannerModal: React.FC<Props> = ({ onClose, onScanSuccess }) => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="grid grid-cols-4 border-b border-slate-200 bg-white text-xs font-semibold">
+        <div className="grid grid-cols-4 border-b border-slate-200 bg-white text-xs font-semibold shrink-0">
           <button
             onClick={() => setActiveTab('camera')}
             className={`py-2.5 flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
@@ -269,7 +269,7 @@ export const QRScannerModal: React.FC<Props> = ({ onClose, onScanSuccess }) => {
         </div>
 
         {/* Body Content */}
-        <div className="p-5">
+        <div className="p-5 overflow-y-auto flex-1 min-h-0 overscroll-contain">
           {/* TAB 1: LIVE CAMERA */}
           {activeTab === 'camera' && (
             <div className="space-y-4">
@@ -384,29 +384,38 @@ export const QRScannerModal: React.FC<Props> = ({ onClose, onScanSuccess }) => {
 
           {/* TAB 4: DEMO TEST PICKER */}
           {activeTab === 'demo' && (
-            <div className="space-y-2">
-              <p className="text-xs text-slate-500 mb-2">
-                Select any registered laboratory instrument to simulate scanning its physical QR code:
-              </p>
-              <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1">
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-medium text-slate-700">
+                  Registered Test Scan Subjects:
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Select any registered laboratory instrument to simulate scanning its physical QR code:
+                </p>
+              </div>
+
+              <div className="max-h-72 sm:max-h-80 overflow-y-auto space-y-2 pr-1 overscroll-contain">
                 {registeredInstruments.map((inst) => {
                   const pubId = inst.publicVerificationId || inst.id;
                   return (
                     <button
                       key={inst.id}
                       onClick={() => onScanSuccess(pubId)}
-                      className="w-full p-2.5 rounded-lg border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-left transition-colors flex items-center justify-between group"
+                      className="w-full p-3 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/60 text-left transition-all flex items-center justify-between group shadow-2xs"
                     >
-                      <div>
-                        <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">
+                      <div className="min-w-0 pr-2">
+                        <div className="text-xs font-bold text-slate-900 group-hover:text-indigo-700 truncate">
                           {inst.manufacturer} {inst.model}
                         </div>
-                        <div className="text-[10px] text-slate-500 font-mono">
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                           SN: {inst.serialNumber} • Tag: {inst.instrumentIdTag}
                         </div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          Class {inst.accuracyClass.replace('CLASS_', '')} • Max {inst.maxCapacity} {inst.unit}
+                        </div>
                       </div>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-200">
-                        Scan Demo
+                      <span className="text-[10px] font-bold px-2.5 py-1 bg-indigo-50 group-hover:bg-indigo-600 text-indigo-700 group-hover:text-white rounded-lg border border-indigo-200 group-hover:border-indigo-600 shrink-0 transition-colors">
+                        Test Scan
                       </span>
                     </button>
                   );

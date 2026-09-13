@@ -72,17 +72,6 @@ export const Navbar: React.FC<Props> = ({
             <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-none tracking-tight truncate">
               NAWI Test Report
             </h1>
-            <a
-              id="navbar-oiml-badge-link"
-              href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:text-indigo-900 border border-indigo-200 uppercase tracking-wider shrink-0 transition-colors"
-              title="Open Official OIML R 76-1:2006 Rules PDF (OIML.org)"
-            >
-              <span>OIML R 76</span>
-              <ExternalLink size={10} />
-            </a>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-1 flex items-center gap-1.5 truncate max-w-[200px] sm:max-w-md">
             <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
@@ -109,17 +98,17 @@ export const Navbar: React.FC<Props> = ({
           </button>
         )}
 
-        {/* Direct Official OIML Rules Button */}
+        {/* The Single Official OIML R-76 Rules Button */}
         <a
           id="navbar-official-rules-btn"
           href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 active:bg-indigo-100 text-slate-700 hover:text-indigo-700 text-xs font-semibold border border-slate-200 hover:border-indigo-200 transition-all"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 active:bg-indigo-100 text-slate-700 hover:text-indigo-700 text-xs font-semibold border border-slate-200 hover:border-indigo-200 transition-all"
           title="Open official OIML R 76-1:2006 (E) standard publication directly from OIML"
         >
           <BookOpen size={14} className="text-indigo-600" />
-          <span>Official R-76 Rules</span>
+          <span className="hidden sm:inline">Official R-76 Rules</span>
           <ExternalLink size={11} className="text-slate-400" />
         </a>
 
@@ -233,21 +222,8 @@ export const Navbar: React.FC<Props> = ({
                 ))}
               </div>
 
-              {/* Official Rules Link in User Menu */}
+              {/* User Menu Actions */}
               <div className="border-t border-slate-100 px-2 py-1.5 space-y-1">
-                <a
-                  href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-indigo-700 hover:bg-indigo-50 font-medium transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <BookOpen size={13} className="text-indigo-600" />
-                    <span>Official OIML R 76-1 PDF</span>
-                  </div>
-                  <ExternalLink size={12} className="text-indigo-400" />
-                </a>
-
                 <button
                   id="navbar-open-auth-btn"
                   onClick={() => {

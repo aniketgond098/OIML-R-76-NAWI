@@ -9,6 +9,8 @@ import { RepeatabilityTestTab } from './tabs/RepeatabilityTestTab';
 import { EccentricityTestTab } from './tabs/EccentricityTestTab';
 import { ZeroTareTestTab } from './tabs/ZeroTareTestTab';
 import { EnvironmentalTestTab } from './tabs/EnvironmentalTestTab';
+import { SmartSequencingPanel } from './SmartSequencingPanel';
+import { testSequencingEngine } from '../../metrology/sequencing/testSequencingEngine';
 import { ComplianceBadge } from '../common/ComplianceBadge';
 import { StatusBadge } from '../common/StatusBadge';
 import { SessionSyncBadge } from '../common/SessionSyncBadge';
@@ -25,6 +27,8 @@ import {
   Thermometer,
   ListChecks,
   Camera,
+  Lock,
+  Sparkles,
 } from 'lucide-react';
 
 interface Props {
@@ -49,13 +53,29 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
   }
 
   const [activeWorkflowTab, setActiveWorkflowTab] = useState<
-    'weighing' | 'repeatability' | 'eccentricity' | 'zerotare' | 'environmental' | 'attachments' | 'review'
-  >('weighing');
+    'sequencing' | 'weighing' | 'repeatability' | 'eccentricity' | 'zerotare' | 'environmental' | 'attachments' | 'review'
+  >('sequencing');
   const [saveToast, setSaveToast] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
 
   const inst = session.instrumentSnapshot;
   const isReadOnly = session.status === 'REPORT_GENERATED' || session.status === 'APPROVED';
+  const currentInstrument = db.getInstrument(session.instrumentId);
+
+  // Check if a workflow tab is locked by verified OIML sequencing rules
+  const getTabLockInfo = (tabId: string): { isLocked: boolean; isBlocked: boolean; reasons: string[] } => {
+    if (!session.smartTestPlan) return { isLocked: false, isBlocked: false, reasons: [] };
+    const itemsForTab = session.smartTestPlan.items.filter((i) => i.workflowTab === tabId);
+    const blockedItem = itemsForTab.find((i) => i.executionStatus === 'BLOCKED');
+    if (blockedItem) {
+      return { isLocked: true, isBlocked: true, reasons: blockedItem.blockingReasons || [] };
+    }
+    const lockedItem = itemsForTab.find((i) => i.executionStatus === 'LOCKED');
+    if (lockedItem) {
+      return { isLocked: true, isBlocked: false, reasons: lockedItem.blockingReasons || [] };
+    }
+    return { isLocked: false, isBlocked: false, reasons: [] };
+  };
 
   // Helper to re-evaluate compliance on changes and persist
   const saveUpdatedSession = (updates: Partial<TestSession>) => {
@@ -250,6 +270,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
         {/* Sub-Navigation Tabs */}
         <div className="flex items-center gap-1 border-t border-slate-100 pt-3 overflow-x-auto pb-1">
           {[
+            { id: 'sequencing', label: 'Smart Test Plan', icon: ListChecks },
             { id: 'weighing', label: '1. Weighing Performance', icon: Scale, count: session.weighingObservations?.length || 0 },
             { id: 'repeatability', label: '2. Repeatability (ΔI)', icon: Activity, count: session.repeatabilitySeries?.length || 0 },
             { id: 'eccentricity', label: '3. Eccentricity', icon: Layers, count: session.eccentricityObservations?.length || 0 },
@@ -261,6 +282,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             const Icon = tab.icon;
             const isActive = activeWorkflowTab === tab.id;
             const comp = getTabCompliance(tab.id);
+            const lockInfo = getTabLockInfo(tab.id);
             return (
               <button
                 key={tab.id}
@@ -273,6 +295,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               >
                 <Icon size={14} className={isActive ? 'text-white' : 'text-slate-400'} />
                 <span>{tab.label}</span>
+                {lockInfo.isLocked && (
+                  <Lock size={11} className={isActive ? 'text-amber-300' : 'text-amber-500'} title="Locked by prerequisite" />
+                )}
                 {comp && comp !== 'NOT_EVALUATED' && (
                   <span
                     className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
@@ -301,6 +326,46 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
 
       {/* Tab Panels */}
       <div>
+        {/* Warning if current tab has locked prerequisites */}
+        {activeWorkflowTab !== 'sequencing' &&
+          activeWorkflowTab !== 'attachments' &&
+          activeWorkflowTab !== 'review' &&
+          getTabLockInfo(activeWorkflowTab).isLocked && (
+            <div className="mb-4 p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start justify-between gap-3 text-xs text-amber-900 shadow-2xs">
+              <div className="flex items-start gap-2.5">
+                <Lock size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold block">
+                    {getTabLockInfo(activeWorkflowTab).isBlocked
+                      ? 'Test Blocked: Prerequisite Did Not Satisfy Criteria'
+                      : 'Prerequisite Notice: Test Locked by OIML R 76-1 Execution Sequence'}
+                  </span>
+                  <ul className="list-disc list-inside text-[11px] text-amber-800 mt-0.5">
+                    {getTabLockInfo(activeWorkflowTab).reasons.map((r, i) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveWorkflowTab('sequencing')}
+                className="px-2.5 py-1 bg-amber-200/80 hover:bg-amber-300 text-amber-900 rounded font-bold text-[11px] transition-colors shrink-0"
+              >
+                View Smart Test Plan
+              </button>
+            </div>
+          )}
+
+        {activeWorkflowTab === 'sequencing' && (
+          <SmartSequencingPanel
+            session={session}
+            currentInstrument={currentInstrument}
+            onNavigateToTab={(tab) => setActiveWorkflowTab(tab)}
+            onRegeneratePlan={(newPlan) => saveUpdatedSession({ smartTestPlan: newPlan })}
+            isReadOnly={isReadOnly}
+          />
+        )}
+
         {activeWorkflowTab === 'weighing' && (
           <WeighingTestTab
             session={session}

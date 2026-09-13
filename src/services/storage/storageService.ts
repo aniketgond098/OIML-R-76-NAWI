@@ -11,6 +11,7 @@ import { syncEngine } from './syncEngine';
 import { migrationService } from './migrationService';
 import { SEED_EQUIPMENT, SEED_INSTRUMENTS, SEED_LABORATORY, SEED_USERS } from './seedData';
 import { evaluateOverallTestSessionCompliance, generateTestPlanForInstrument } from '../../metrology/compliance/complianceEngine';
+import { testSequencingEngine } from '../../metrology/sequencing/testSequencingEngine';
 import { generateTestReport } from '../../metrology/compliance/reportGenerator';
 import { calculateWeighingError } from '../../metrology/calculations/weighing';
 import { calculateRepeatability } from '../../metrology/calculations/repeatability';
@@ -559,7 +560,8 @@ export class StorageService {
     const defaultTech = SEED_USERS.find((u) => u.role === 'LAB_TECHNICIAN') || actor;
     const techToAssign = technicianUser || (actor.role === 'LAB_TECHNICIAN' ? actor : defaultTech);
 
-    const testPlan = generateTestPlanForInstrument(inst);
+    const smartPlan = testSequencingEngine.generateSmartTestPlan(inst);
+    const testPlan = testSequencingEngine.toLegacyTestPlan(smartPlan);
     const testSessionNumber = this.generateNextTestNumber();
 
     const newSession: TestSession = {
@@ -588,6 +590,7 @@ export class StorageService {
       createdAt: new Date().toISOString(),
       startedAt: new Date().toISOString(),
       testPlan,
+      smartTestPlan: smartPlan,
       equipmentIds: [],
       environmentalReadings: [
         {
@@ -672,6 +675,16 @@ export class StorageService {
     const compEval = evaluateOverallTestSessionCompliance(session);
     session.overallCompliance = compEval.overallCompliance;
     session.complianceSummary = compEval.summary;
+
+    // Recalculate Smart Test Plan execution state
+    if (session.smartTestPlan) {
+      session.smartTestPlan = testSequencingEngine.recalculateTestPlanState(session.smartTestPlan, session);
+    } else {
+      const inst = this.instruments.get(session.instrumentId);
+      if (inst) {
+        session.smartTestPlan = testSequencingEngine.generateSmartTestPlan(inst, session);
+      }
+    }
 
     // 1. Update memory
     this.testSessions.set(session.id, session);

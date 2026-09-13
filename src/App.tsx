@@ -151,7 +151,7 @@ function AppContent() {
   // If public verification URL is accessed directly or navigated to:
   if (publicVerificationId) {
     return (
-      <>
+      <div id="public-verification-wrapper" className="h-screen w-full overflow-y-auto bg-slate-50">
         <PublicVerificationView
           publicInstrumentId={publicVerificationId}
           onBack={handleCloseVerification}
@@ -171,7 +171,7 @@ function AppContent() {
             }}
           />
         )}
-      </>
+      </div>
     );
   }
 

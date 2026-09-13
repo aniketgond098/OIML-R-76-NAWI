@@ -1,4 +1,5 @@
 import { AccuracyClass, ComplianceStatus, MassUnit, StandardEdition } from './metrology';
+import { SmartTestPlan } from '../metrology/sequencing/sequencingTypes';
 
 export type TestSessionStatus =
   | 'DRAFT'
@@ -210,6 +211,7 @@ export interface TestSession {
   
   // Plan & Equipment
   testPlan: TestPlanItem[];
+  smartTestPlan?: SmartTestPlan;
   equipmentIds: string[];
   
   // Environmental data
