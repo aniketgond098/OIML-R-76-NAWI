@@ -196,7 +196,7 @@ export class TestDependencyResolver {
 
       // Check if item was explicitly skipped in session.testPlan
       const isSkippedInPlan = session?.testPlan?.some(
-        (tp) => (tp.category === rule.testCategory || tp.name === rule.name) && tp.status === 'SKIPPED'
+        (tp) => (tp.category === rule.testCategory || tp.name === rule.testName) && tp.status === 'SKIPPED'
       );
 
       // Check applicability barriers

@@ -164,6 +164,45 @@ export interface TiltingObservation {
   compliance: ComplianceStatus;
 }
 
+// 9. Creep / Time-Based Test Observation (Clause 3.9.4.1 & Manufacturer/Laboratory QC)
+export interface CreepTestObservation {
+  nominalLoad: number;
+  testDurationSeconds: number; // e.g. 60, 240, or 1800 seconds
+  initialIndication: number;
+  finalIndication: number;
+  driftValue: number;
+  maxPermissibleDrift: number;
+  percentageDrift: number;
+  timerCompleted: boolean;
+  compliance: ComplianceStatus;
+}
+
+// 10. Additional Laboratory / Manufacturer QC Checks (Clearly distinct from OIML requirements)
+export interface AdditionalQCChecks {
+  // Mechanical & Physical Checks
+  levelingBubbleCentered?: boolean;
+  platterStabilitySecure?: boolean;
+  sealingMarksIntact?: boolean;
+  housingDamageNone?: boolean;
+  feetLockingNutTight?: boolean;
+  cleanlinessAcceptable?: boolean;
+
+  // Electronic & Sensor Checks
+  rawAdcZeroCount?: number;
+  rawAdcSpanCount?: number;
+  excitationVoltageV?: number;
+  displaySegmentsOk?: boolean;
+  keypadResponseOk?: boolean;
+  pcbFirmwareVersion?: string;
+  loadcellSerialNumber?: string;
+
+  // Sign-off
+  qcInspectorName?: string;
+  qcNotes?: string;
+  inspectionDate?: string;
+  overallQcStatus?: 'PASS' | 'FAIL' | 'PENDING' | 'NOT_APPLICABLE';
+}
+
 export interface TestPlanItem {
   category: TestCategory;
   name: string;
@@ -226,6 +265,8 @@ export interface TestSession {
   temperatureSpanObservation?: TemperatureSpanObservation;
   discriminationObservation?: DiscriminationObservation;
   tiltingObservation?: TiltingObservation;
+  creepObservation?: CreepTestObservation;
+  additionalQCChecks?: AdditionalQCChecks;
   
   // Summary & Compliance
   overallCompliance: ComplianceStatus;

@@ -45,12 +45,20 @@ export const GuidedWeighingStep: React.FC<Props> = ({
     return defaultTargetPoints.map((p) => p.load);
   });
 
+  const [showAllModal, setShowAllModal] = useState<boolean>(false);
+  const [actualLoads, setActualLoads] = useState<number[]>(() => {
+    if (existingObs.length >= defaultTargetPoints.length) {
+      return existingObs.map((o) => o.nominalLoad);
+    }
+    return defaultTargetPoints.map((p) => p.load);
+  });
+
   const [viewSummary, setViewSummary] = useState<boolean>(existingObs.length >= defaultTargetPoints.length);
 
   // Evaluate zero error E0 first
   const zeroObs = readings[0] !== undefined
     ? calculateWeighingError({
-        nominalLoadL: 0,
+        nominalLoadL: actualLoads[0] ?? 0,
         indicatedValueI: readings[0],
         verificationScaleIntervalE: e,
         unit: inst.unit,
@@ -62,9 +70,10 @@ export const GuidedWeighingStep: React.FC<Props> = ({
 
   // Evaluate all points
   const evaluatedPoints = defaultTargetPoints.map((pt, idx) => {
+    const actLoad = actualLoads[idx] ?? pt.load;
     const indicated = readings[idx];
     const res = calculateWeighingError({
-      nominalLoadL: pt.load,
+      nominalLoadL: actLoad,
       indicatedValueI: indicated,
       verificationScaleIntervalE: e,
       unit: inst.unit,
@@ -74,6 +83,7 @@ export const GuidedWeighingStep: React.FC<Props> = ({
     });
     return {
       ...pt,
+      actualLoad: actLoad,
       indicated,
       ...res,
     };
@@ -109,20 +119,29 @@ export const GuidedWeighingStep: React.FC<Props> = ({
       <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
         <div>
           <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600 block">
-            Weighing Performance Test (Clause 3.5.1 & A.4.4)
+            Weighing & Linearity Performance (Clause 3.5.1 & A.4.4)
           </span>
           <h3 className="text-sm font-bold text-slate-900">
             {viewSummary
-              ? 'Weighing Performance Results'
+              ? 'Weighing Performance — Results Summary'
               : `Point ${activePointIndex + 1} of ${defaultTargetPoints.length}: ${currentPt.name}`}
           </h3>
         </div>
-        <button
-          onClick={onWhyClick}
-          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline"
-        >
-          <HelpCircle size={14} /> Why am I doing this?
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowAllModal(true)}
+            className="text-xs text-slate-600 hover:text-slate-900 font-semibold px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+          >
+            View All Measurements
+          </button>
+          <button
+            onClick={onWhyClick}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline"
+          >
+            <HelpCircle size={14} /> Why this test?
+          </button>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -147,26 +166,51 @@ export const GuidedWeighingStep: React.FC<Props> = ({
               ))}
             </div>
 
-            {/* Instruction Card */}
-            <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-950">
-                  {currentPt.name} ({currentPt.dir})
+            {/* WHAT TO DO Instruction Box */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">What To Do</h4>
+              <ol className="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+                <li>Place the specified reference load (<strong className="text-slate-900">{currentPt.load} {inst.unit}</strong>) gently in the center of the platform.</li>
+                <li>Wait for the reading to stabilize (stability indicator illuminates).</li>
+                <li>Verify or adjust actual reference weight value, then enter the displayed indication.</li>
+                <li>Check the automatically calculated corrected error and MPE result.</li>
+                <li>Press <strong className="text-indigo-600">Save & Continue</strong> to record and advance.</li>
+              </ol>
+            </div>
+
+            {/* Target Load & Actual Reference Load */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                <span className="text-[11px] font-semibold text-indigo-900 block">Required Nominal Load:</span>
+                <span className="text-lg font-bold font-mono text-indigo-950">
+                  {currentPt.load} {inst.unit}
                 </span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800">
-                  {currentPt.dir}
+                <span className="text-[10px] text-indigo-700 block mt-0.5 uppercase font-medium">
+                  {currentPt.dir} Direction
                 </span>
               </div>
-              <p className="text-xs text-slate-700">
-                {currentPt.desc}
-              </p>
-              <div className="p-2.5 bg-white rounded-lg border border-indigo-100 inline-block text-xs">
-                <span className="text-slate-500 font-medium">Place test load on the platform:</span>{' '}
-                <strong className="text-slate-900 font-mono text-sm">{currentPt.load} {inst.unit}</strong>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Actual / Reference Standard Load ({inst.unit})
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={actualLoads[activePointIndex]}
+                  disabled={isReadOnly}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    const updated = [...actualLoads];
+                    updated[activePointIndex] = val;
+                    setActualLoads(updated);
+                  }}
+                  className="w-full text-base font-mono font-bold px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-hidden disabled:bg-slate-100"
+                />
               </div>
             </div>
 
-            {/* Measurement Input */}
+            {/* Displayed Indication Input */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
                 Displayed Indication ({inst.unit})
@@ -176,6 +220,7 @@ export const GuidedWeighingStep: React.FC<Props> = ({
                   type="number"
                   step="any"
                   value={readings[activePointIndex]}
+                  disabled={isReadOnly}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value) || 0;
                     const updated = [...readings];
@@ -190,11 +235,11 @@ export const GuidedWeighingStep: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* Live Feedback */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs font-mono">
+            {/* Automatic Calculations & Live Feedback */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs font-mono">
               <div>
-                <span className="text-slate-500 font-sans text-[11px] block">Corrected Error (Ec):</span>
-                <strong className="text-slate-900">{currentEval.correctedErrorEc.toFixed(4)} {inst.unit}</strong>
+                <span className="text-slate-500 font-sans text-[11px] block">Calculated Difference (Ec):</span>
+                <strong className="text-slate-900 text-sm">{currentEval.correctedErrorEc.toFixed(4)} {inst.unit}</strong>
               </div>
               <div>
                 <span className="text-slate-500 font-sans text-[11px] block">MPE Limit:</span>
@@ -202,12 +247,13 @@ export const GuidedWeighingStep: React.FC<Props> = ({
               </div>
               <div className="text-right">
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase font-sans ${
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-md uppercase font-sans inline-flex items-center gap-1 ${
                     currentEval.compliance === 'PASS'
                       ? 'bg-emerald-100 text-emerald-800'
                       : 'bg-rose-100 text-rose-800'
                   }`}
                 >
+                  {currentEval.compliance === 'PASS' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                   {currentEval.compliance}
                 </span>
               </div>
@@ -234,7 +280,7 @@ export const GuidedWeighingStep: React.FC<Props> = ({
                     {overallPass ? 'Weighing Performance Passed' : 'Weighing Performance Failed'}
                   </h4>
                   <p className="text-xs opacity-90">
-                    All test points are within the maximum permissible error limits.
+                    All 8 test points are within the maximum permissible error (MPE) tolerances.
                   </p>
                 </div>
               </div>
@@ -301,9 +347,9 @@ export const GuidedWeighingStep: React.FC<Props> = ({
                   setViewSummary(true);
                 }
               }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
             >
-              {activePointIndex === defaultTargetPoints.length - 1 ? 'View Result Summary' : 'Next Test Load'}{' '}
+              <span>{activePointIndex === defaultTargetPoints.length - 1 ? 'Save & Review Summary' : 'Save & Continue'}</span>
               <ArrowRight size={14} />
             </button>
           </>
@@ -313,19 +359,94 @@ export const GuidedWeighingStep: React.FC<Props> = ({
               onClick={() => setViewSummary(false)}
               className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-lg transition-colors flex items-center gap-1.5"
             >
-              <ArrowLeft size={14} /> Edit Test Points
+              <ArrowLeft size={14} /> Edit Measurements
             </button>
 
             <button
               onClick={handleFinish}
               disabled={isReadOnly}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
             >
               <Check size={14} /> Complete Weighing Test & Continue
             </button>
           </>
         )}
       </div>
+
+      {/* Optional "View All Measurements" Modal */}
+      {showAllModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">All Weighing Performance Measurements</h4>
+                <p className="text-xs text-slate-500">Overview of all 8 ascending and descending load points</p>
+              </div>
+              <button
+                onClick={() => setShowAllModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+                  <tr>
+                    <th className="py-2 px-3">Point</th>
+                    <th className="py-2 px-3">Dir</th>
+                    <th className="py-2 px-3">Req Load</th>
+                    <th className="py-2 px-3">Ref Load</th>
+                    <th className="py-2 px-3">Indication</th>
+                    <th className="py-2 px-3">Error (Ec)</th>
+                    <th className="py-2 px-3">MPE</th>
+                    <th className="py-2 px-3">Result</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-mono">
+                  {evaluatedPoints.map((pt, idx) => (
+                    <tr
+                      key={idx}
+                      className={`hover:bg-slate-50/80 cursor-pointer ${idx === activePointIndex ? 'bg-indigo-50/50' : ''}`}
+                      onClick={() => {
+                        setActivePointIndex(idx);
+                        setShowAllModal(false);
+                      }}
+                    >
+                      <td className="py-2 px-3 font-sans font-medium">{idx + 1}. {pt.name.split(' (')[0]}</td>
+                      <td className="py-2 px-3 font-sans text-[10px]">{pt.dir}</td>
+                      <td className="py-2 px-3">{pt.load} {inst.unit}</td>
+                      <td className="py-2 px-3">{pt.actualLoad} {inst.unit}</td>
+                      <td className="py-2 px-3 font-bold">{pt.indicated} {inst.unit}</td>
+                      <td className="py-2 px-3">{pt.correctedErrorEc.toFixed(4)}</td>
+                      <td className="py-2 px-3">±{pt.mpeInUnit.toFixed(4)}</td>
+                      <td className="py-2 px-3 font-sans">
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            pt.compliance === 'PASS' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {pt.compliance}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowAllModal(false)}
+                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold"
+              >
+                Close Table
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

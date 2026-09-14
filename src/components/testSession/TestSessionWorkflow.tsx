@@ -415,6 +415,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             session={session}
             isReadOnly={isReadOnly}
             onUpdateObservations={(weighingObservations) => saveUpdatedSession({ weighingObservations })}
+            onUpdateDiscriminationObservation={(discriminationObservation) =>
+              saveUpdatedSession({ discriminationObservation })
+            }
           />
         )}
 
@@ -451,6 +454,9 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             session={session}
             isReadOnly={isReadOnly}
             onUpdateEnvironmentalReadings={(environmentalReadings) => saveUpdatedSession({ environmentalReadings })}
+            onUpdateTemperatureSpanObservation={(temperatureSpanObservation) =>
+              saveUpdatedSession({ temperatureSpanObservation })
+            }
           />
         )}
 

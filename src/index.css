@@ -8,3 +8,47 @@ body,
   margin: 0;
   padding: 0;
 }
+
+@media print {
+  html,
+  body,
+  #root,
+  #app-root,
+  main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    background: white !important;
+  }
+
+  nav,
+  header,
+  aside,
+  #app-sidebar,
+  #app-navbar,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  #technical-sheet-canvas {
+    border: 1px solid #0f172a !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+}
+

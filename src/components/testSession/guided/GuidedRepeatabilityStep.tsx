@@ -44,6 +44,7 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
     return [fullMaxLoad, fullMaxLoad, fullMaxLoad];
   });
 
+  const [showAllModal, setShowAllModal] = useState<boolean>(false);
   const [viewSummary, setViewSummary] = useState(existingSeries.length >= 2);
 
   // Evaluators
@@ -130,16 +131,25 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
           </span>
           <h3 className="text-sm font-bold text-slate-900">
             {viewSummary
-              ? 'Repeatability Test Results'
+              ? 'Repeatability Test — Results Summary'
               : `Series ${activeSeriesIndex + 1} of 2 (${currentTargetLoad} ${inst.unit}) - Run ${activeRunIndex + 1} of 3`}
           </h3>
         </div>
-        <button
-          onClick={onWhyClick}
-          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline"
-        >
-          <HelpCircle size={14} /> Why am I doing this?
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setShowAllModal(true)}
+            className="text-xs text-slate-600 hover:text-slate-900 font-semibold px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+          >
+            View All Runs
+          </button>
+          <button
+            onClick={onWhyClick}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline"
+          >
+            <HelpCircle size={14} /> Why this test?
+          </button>
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -147,7 +157,9 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
           <div className="space-y-5">
             {/* Step Progress Pills */}
             <div className="flex items-center gap-2">
-              <div
+              <button
+                type="button"
+                onClick={() => { setActiveSeriesIndex(0); setActiveRunIndex(0); }}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-center text-xs font-bold border transition-colors ${
                   activeSeriesIndex === 0
                     ? 'bg-indigo-50 border-indigo-200 text-indigo-800'
@@ -155,8 +167,10 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
                 }`}
               >
                 Series 1: 50% Max ({halfMaxLoad} {inst.unit})
-              </div>
-              <div
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveSeriesIndex(1); setActiveRunIndex(0); }}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-center text-xs font-bold border transition-colors ${
                   activeSeriesIndex === 1
                     ? 'bg-indigo-50 border-indigo-200 text-indigo-800'
@@ -164,24 +178,37 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
                 }`}
               >
                 Series 2: Max Capacity ({fullMaxLoad} {inst.unit})
-              </div>
+              </button>
+            </div>
+
+            {/* WHAT TO DO Instruction Box */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">What To Do</h4>
+              <ol className="text-xs text-slate-600 space-y-1 list-decimal list-inside">
+                <li>Verify scale returns to zero, zero-tracking or re-zero if necessary.</li>
+                <li>Apply test load (<strong className="text-slate-900">{currentTargetLoad} {inst.unit}</strong>) gently on the platter.</li>
+                <li>Wait for the reading to stabilize.</li>
+                <li>Enter the displayed indication, then press <strong className="text-indigo-600">Save & Continue</strong>.</li>
+              </ol>
             </div>
 
             {/* Run Indicator */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-700">
                   Run {activeRunIndex + 1} of 3
                 </span>
                 <span className="font-mono text-slate-500">
-                  Target Load: <strong className="text-slate-900">{currentTargetLoad} {inst.unit}</strong>
+                  Test Load: <strong className="text-slate-900">{currentTargetLoad} {inst.unit}</strong>
                 </span>
               </div>
 
               <div className="flex gap-1.5">
                 {[0, 1, 2].map((idx) => (
-                  <div
+                  <button
                     key={idx}
+                    type="button"
+                    onClick={() => setActiveRunIndex(idx)}
                     className={`h-2 flex-1 rounded-full transition-colors ${
                       idx === activeRunIndex
                         ? 'bg-indigo-600'
@@ -374,9 +401,9 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
                   setViewSummary(true);
                 }
               }}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
             >
-              {activeRunIndex === 2 && activeSeriesIndex === 1 ? 'View Result Summary' : 'Save Run & Continue'}{' '}
+              <span>{activeRunIndex === 2 && activeSeriesIndex === 1 ? 'Save & Review Summary' : 'Save & Continue'}</span>
               <ArrowRight size={14} />
             </button>
           </>
@@ -392,13 +419,96 @@ export const GuidedRepeatabilityStep: React.FC<Props> = ({
             <button
               onClick={handleFinish}
               disabled={isReadOnly}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs transition-colors flex items-center gap-1.5"
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
             >
               <Check size={14} /> Complete Repeatability Test & Continue
             </button>
           </>
         )}
       </div>
+
+      {/* Optional "View All Runs" Modal */}
+      {showAllModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900">All Repeatability Test Runs</h4>
+                <p className="text-xs text-slate-500">Overview of Series 1 (50% Max) and Series 2 (Max Capacity)</p>
+              </div>
+              <button
+                onClick={() => setShowAllModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Series 1 table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 font-bold text-xs text-slate-700 flex justify-between">
+                  <span>Series 1 (50% Max: {halfMaxLoad} {inst.unit})</span>
+                  <span className="font-mono">ΔI: {evalSeries1.deltaI.toFixed(4)} {inst.unit} ({evalSeries1.compliance})</span>
+                </div>
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-100/60 text-slate-600 border-b border-slate-200">
+                    <tr>
+                      <th className="py-1.5 px-3">Run</th>
+                      <th className="py-1.5 px-3">Indication</th>
+                      <th className="py-1.5 px-3">Zero Return</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono">
+                    {series1Readings.map((val, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="py-1.5 px-3 font-sans">Run #{idx + 1}</td>
+                        <td className="py-1.5 px-3 font-bold">{val} {inst.unit}</td>
+                        <td className="py-1.5 px-3">0.000 {inst.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Series 2 table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 font-bold text-xs text-slate-700 flex justify-between">
+                  <span>Series 2 (Max Capacity: {fullMaxLoad} {inst.unit})</span>
+                  <span className="font-mono">ΔI: {evalSeries2.deltaI.toFixed(4)} {inst.unit} ({evalSeries2.compliance})</span>
+                </div>
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-100/60 text-slate-600 border-b border-slate-200">
+                    <tr>
+                      <th className="py-1.5 px-3">Run</th>
+                      <th className="py-1.5 px-3">Indication</th>
+                      <th className="py-1.5 px-3">Zero Return</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono">
+                    {series2Readings.map((val, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50">
+                        <td className="py-1.5 px-3 font-sans">Run #{idx + 1}</td>
+                        <td className="py-1.5 px-3 font-bold">{val} {inst.unit}</td>
+                        <td className="py-1.5 px-3">0.000 {inst.unit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setShowAllModal(false)}
+                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold"
+              >
+                Close Table
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { TestReport } from '../../types/report';
 import { Laboratory } from '../../types/user';
+import { TestSession } from '../../types/testSession';
 
 /**
  * Authoritative PDF Generation Service for OIML R 76-1:2006 (E) NAWI Test Reports.
@@ -77,7 +78,7 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
       { content: 'Serial Number:', styles: { fontStyle: 'bold' as const } },
       inst.serialNumber,
       { content: 'Accuracy Class:', styles: { fontStyle: 'bold' as const } },
-      `Class ${inst.accuracyClass.replace('CLASS_', '')} (OIML Table 3)`,
+      `Class ${String(inst.accuracyClass || 'CLASS_III').replace('CLASS_', '')} (OIML Table 3)`,
     ],
     [
       { content: 'Max Capacity:', styles: { fontStyle: 'bold' as const } },
@@ -372,3 +373,323 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
   // Save the document
   doc.save(`${report.reportNumber}_Rev${report.currentRevision}.pdf`);
 }
+
+/**
+ * PDF Generation for OIML R 76-1 Technical Metrology Worksheet.
+ * Generates an authoritative digital & printable test sheet for laboratory technicians.
+ */
+export function generateWorksheetPDF(session: TestSession, lab?: Laboratory): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 12;
+  let y = margin;
+
+  const laboratoryName = lab?.name || 'NATIONAL LEGAL METROLOGY LABORATORY';
+  const labAccreditation = lab?.accreditationNumber || 'ISO/IEC 17025 ACCREDITED';
+  const labAddress = lab ? `${lab.legalAddress}, ${lab.city}, ${lab.country}` : 'Legal Metrology Inspection Division';
+
+  // 1. Header Banner
+  doc.setFillColor(15, 23, 42); // Slate 900
+  doc.rect(margin, y, pageWidth - 2 * margin, 24, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(laboratoryName.toUpperCase(), margin + 5, y + 7);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(203, 213, 225); // Slate 300
+  doc.text(`Accreditation: ${labAccreditation} | Standard: OIML R 76-1:2006 (E)`, margin + 5, y + 13);
+  doc.text(labAddress, margin + 5, y + 18);
+
+  y += 27;
+
+  // Title Box
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('LEGAL METROLOGY NAWI TECHNICAL WORKSHEET', margin, y + 1);
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(71, 85, 105);
+
+  const metaRight = pageWidth - margin;
+  const verifTypeLabel = String(session.verificationType || 'INITIAL').replace(/_/g, ' ');
+  const dateLabel = session.startedAt ? new Date(session.startedAt).toLocaleDateString() : new Date().toLocaleDateString();
+  doc.text(`Session ID: ${session.id}`, metaRight, y - 1, { align: 'right' });
+  doc.text(`Type: ${verifTypeLabel} | Date: ${dateLabel}`, metaRight, y + 3.5, { align: 'right' });
+
+  y += 7;
+
+  // 1. Instrument Under Test
+  const inst = session.instrumentSnapshot;
+  const accuracyClassLabel = String(inst?.accuracyClass || 'CLASS_III').replace('CLASS_', '');
+  const instData = [
+    [
+      { content: 'Manufacturer:', styles: { fontStyle: 'bold' as const } },
+      inst?.manufacturer || 'Unknown',
+      { content: 'Model / Type:', styles: { fontStyle: 'bold' as const } },
+      `${inst?.model || 'NAWI'} (${(inst as any)?.instrumentType || 'Electronic NAWI'})`,
+    ],
+    [
+      { content: 'Serial Number:', styles: { fontStyle: 'bold' as const } },
+      inst?.serialNumber || 'N/A',
+      { content: 'Accuracy Class:', styles: { fontStyle: 'bold' as const } },
+      `Class ${accuracyClassLabel}`,
+    ],
+    [
+      { content: 'Max Capacity:', styles: { fontStyle: 'bold' as const } },
+      `${inst.maxCapacity} ${inst.unit}`,
+      { content: 'Min Capacity:', styles: { fontStyle: 'bold' as const } },
+      `${inst.minCapacity} ${inst.unit}`,
+    ],
+    [
+      { content: 'Scale Interval (e):', styles: { fontStyle: 'bold' as const } },
+      `${inst.verificationScaleInterval} ${inst.unit}`,
+      { content: 'Resolution (d):', styles: { fontStyle: 'bold' as const } },
+      `${inst.actualScaleInterval} ${inst.unit} (n = ${inst.numberOfIntervals.toLocaleString()})`,
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: y,
+    head: [[{ content: '1. INSTRUMENT UNDER TEST SPECIFICATIONS', colSpan: 4, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }]],
+    body: instData,
+    theme: 'grid',
+    styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+    margin: { left: margin, right: margin },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 3;
+
+  // 2. Ambient Test Conditions
+  const env = session.environmentalReadings?.[0];
+  const envData = [
+    [
+      { content: 'Temperature:', styles: { fontStyle: 'bold' as const } },
+      `${env?.temperatureC ?? 20.0} °C`,
+      { content: 'Relative Humidity:', styles: { fontStyle: 'bold' as const } },
+      `${env?.relativeHumidityPercent ?? 50.0} % RH`,
+      { content: 'Atmospheric Pressure:', styles: { fontStyle: 'bold' as const } },
+      `${env?.atmosphericPressureHPa ?? 1013.25} hPa`,
+    ],
+  ];
+
+  autoTable(doc, {
+    startY: y,
+    head: [[{ content: '2. ENVIRONMENTAL TEST CONDITIONS', colSpan: 6, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }]],
+    body: envData,
+    theme: 'grid',
+    styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+    margin: { left: margin, right: margin },
+  });
+
+  y = (doc as any).lastAutoTable.finalY + 3;
+
+  // 3. Section A: Weighing Linearity Performance
+  const weighingObs = session.weighingObservations || [];
+  if (weighingObs.length > 0) {
+    const weighingRows = weighingObs.map((pt, idx) => [
+      `${idx + 1}`,
+      `${pt.nominalLoad} ${inst.unit}`,
+      `${pt.indicatedValue} ${inst.unit}`,
+      pt.calculatedIndicationP != null ? `${pt.calculatedIndicationP.toFixed(3)} ${inst.unit}` : '-',
+      pt.correctedErrorEc != null ? `${pt.correctedErrorEc.toFixed(4)} ${inst.unit}` : '-',
+      pt.mpeInUnit != null ? `±${pt.mpeInUnit.toFixed(4)} ${inst.unit}` : '-',
+      {
+        content: pt.compliance || 'EVALUATED',
+        styles: {
+          textColor: (pt.compliance === 'PASS' ? [22, 101, 52] : pt.compliance === 'FAIL' ? [153, 27, 27] : [30, 41, 59]) as [number, number, number],
+          fontStyle: 'bold' as const,
+        },
+      },
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [{ content: '3. WEIGHING PERFORMANCE TEST (OIML R 76-1 Clause 3.5.1, A.4.4)', colSpan: 7, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }],
+        ['Pt', 'Nominal Load', 'Indication (I)', 'Calc. Indication (P)', 'Error (Ec)', 'MPE Limit', 'Status']
+      ],
+      body: weighingRows,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+      headStyles: { fillColor: [248, 250, 252], textColor: [71, 85, 105], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 3;
+  }
+
+  // 4. Section B: Eccentricity Test
+  const eccObs = session.eccentricityObservations || [];
+  if (eccObs.length > 0) {
+    if (y > pageHeight - 50) {
+      doc.addPage();
+      y = margin;
+    }
+
+    const eccRows = eccObs.map((obs) => [
+      obs.positionName,
+      `${obs.nominalLoad} ${inst.unit}`,
+      `${obs.indicatedValue} ${inst.unit}`,
+      obs.correctedErrorEc != null ? `${obs.correctedErrorEc.toFixed(4)} ${inst.unit}` : '-',
+      obs.mpeInUnit != null ? `±${obs.mpeInUnit.toFixed(4)} ${inst.unit}` : '-',
+      {
+        content: obs.compliance || 'EVALUATED',
+        styles: {
+          textColor: (obs.compliance === 'PASS' ? [22, 101, 52] : obs.compliance === 'FAIL' ? [153, 27, 27] : [30, 41, 59]) as [number, number, number],
+          fontStyle: 'bold' as const,
+        },
+      },
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [{ content: '4. ECCENTRICITY TEST (OIML R 76-1 Clause 3.6.2, A.4.7)', colSpan: 6, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }],
+        ['Receptor Position', 'Test Load', 'Indication (I)', 'Error (Ec)', 'MPE Limit', 'Status']
+      ],
+      body: eccRows,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+      headStyles: { fillColor: [248, 250, 252], textColor: [71, 85, 105], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 3;
+  }
+
+  // 5. Section C: Repeatability Test
+  const repSeries = session.repeatabilitySeries || (session as any).repeatabilityObservations || [];
+  if (repSeries.length > 0) {
+    if (y > pageHeight - 50) {
+      doc.addPage();
+      y = margin;
+    }
+
+    const repRows = repSeries.map((s, idx) => [
+      `Series ${idx + 1}`,
+      `${s.nominalLoad} ${inst.unit}`,
+      `${s.readings?.length || 0} runs`,
+      s.readings?.map((r) => r.indicatedValue).join(', ') || '-',
+      s.deltaI != null ? `${s.deltaI.toFixed(4)} ${inst.unit}` : '-',
+      s.mpeInUnit != null ? `≤ ${s.mpeInUnit.toFixed(4)} ${inst.unit}` : '-',
+      {
+        content: s.compliance || 'EVALUATED',
+        styles: {
+          textColor: (s.compliance === 'PASS' ? [22, 101, 52] : s.compliance === 'FAIL' ? [153, 27, 27] : [30, 41, 59]) as [number, number, number],
+          fontStyle: 'bold' as const,
+        },
+      },
+    ]);
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [{ content: '5. REPEATABILITY TEST (OIML R 76-1 Clause 3.6.1, A.4.10)', colSpan: 7, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }],
+        ['Series', 'Nominal Load', 'Count', 'Indication Values', 'Max Diff (ΔI)', 'Limit', 'Status']
+      ],
+      body: repRows,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+      headStyles: { fillColor: [248, 250, 252], textColor: [71, 85, 105], fontStyle: 'bold' },
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 3;
+  }
+
+  // 6. Section D: Supplementary QC Inspection
+  const qc = session.additionalQCChecks;
+  if (qc) {
+    if (y > pageHeight - 45) {
+      doc.addPage();
+      y = margin;
+    }
+
+    const qcRows = [
+      [
+        'Leveling Bubble:', qc.levelingBubbleCentered ? 'CENTERED / VERIFIED' : 'OFF-CENTER',
+        'Platter Seating:', qc.platterStabilitySecure ? 'FIRM / PROPER' : 'UNSTABLE',
+      ],
+      [
+        'Security Seals:', qc.sealingMarksIntact ? 'INTACT & VALID' : 'TAMPERED / BROKEN',
+        'Zero ADC Count:', qc.rawAdcZeroCount != null ? qc.rawAdcZeroCount.toLocaleString() : '-',
+      ],
+      [
+        'Span ADC Count:', qc.rawAdcSpanCount != null ? qc.rawAdcSpanCount.toLocaleString() : '-',
+        'Excitation Voltage:', qc.excitationVoltageV != null ? `${qc.excitationVoltageV.toFixed(2)} V` : '-',
+      ],
+    ];
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [{ content: `6. SUPPLEMENTARY LABORATORY QC & METROLOGICAL INTEGRITY (${qc.overallQcStatus})`, colSpan: 4, styles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' } }],
+      ],
+      body: qcRows,
+      theme: 'grid',
+      styles: { fontSize: 7, cellPadding: 1.5, textColor: [30, 41, 59], lineColor: [226, 232, 240] },
+      margin: { left: margin, right: margin },
+    });
+
+    y = (doc as any).lastAutoTable.finalY + 3;
+  }
+
+  // 7. Signatures & Technician Determination
+  if (y > pageHeight - 40) {
+    doc.addPage();
+    y = margin;
+  }
+
+  const colW = (pageWidth - 2 * margin) / 2;
+  doc.setDrawColor(226, 232, 240);
+  doc.rect(margin, y, colW - 2, 22);
+  doc.rect(margin + colW + 2, y, colW - 2, 22);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(15, 23, 42);
+  doc.text('TESTING TECHNICIAN:', margin + 3, y + 4.5);
+  doc.text('VERIFICATION STATUS & SIGNOFF:', margin + colW + 5, y + 4.5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(51, 65, 85);
+  doc.text(session.technicianName || 'Certified Verification Technician', margin + 3, y + 10);
+  doc.text(`Date: ${new Date().toLocaleDateString()} | Time: ${new Date().toLocaleTimeString()}`, margin + 3, y + 14.5);
+  doc.text('Status: [OBSERVATIONS RECORDED IN FIELD]', margin + 3, y + 18.5);
+
+  const sessionStatusLabel = String(session.status || 'IN_PROGRESS').replace(/_/g, ' ');
+  doc.text(`Session State: ${sessionStatusLabel}`, margin + colW + 5, y + 10);
+  doc.text(`Completed: ${session.completedAt ? new Date(session.completedAt).toLocaleString() : 'In Progress'}`, margin + colW + 5, y + 14.5);
+  doc.text('Signature: ___________________________', margin + colW + 5, y + 18.5);
+
+  // Footer on all pages
+  const pageCount = (doc.internal as any).getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(148, 163, 184); // Slate 400
+
+    doc.text(
+      `OIML R 76-1:2006 NAWI Laboratory Worksheet | Session ID: ${session.id} | Timestamp: ${new Date().toISOString()}`,
+      margin,
+      pageHeight - 5
+    );
+    doc.text(`Page ${i} of ${pageCount}`, pageWidth - margin, pageHeight - 5, { align: 'right' });
+  }
+
+  // Save the document
+  doc.save(`Worksheet-${session.id}.pdf`);
+}
+

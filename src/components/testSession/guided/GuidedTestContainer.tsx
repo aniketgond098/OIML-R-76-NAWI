@@ -13,6 +13,8 @@ import { GuidedEnvironmentalStep } from './GuidedEnvironmentalStep';
 import { GuidedDiscriminationStep } from './GuidedDiscriminationStep';
 import { GuidedTemperatureSpanStep } from './GuidedTemperatureSpanStep';
 import { GuidedTiltingStep } from './GuidedTiltingStep';
+import { GuidedAdditionalQCChecksStep } from './GuidedAdditionalQCChecksStep';
+import { TechnicalSheetView } from '../TechnicalSheetView';
 import {
   CheckCircle2,
   XCircle,
@@ -31,6 +33,8 @@ import {
   Eye,
   SlidersHorizontal,
   ChevronRight,
+  FileText,
+  Wrench,
 } from 'lucide-react';
 
 interface Props {
@@ -76,6 +80,10 @@ export const GuidedTestContainer: React.FC<Props> = ({
 
   // Track readiness screen ("Before you begin")
   const [isReadyStarted, setIsReadyStarted] = useState<boolean>(false);
+
+  // View Mode: 'guided' (default) vs 'technical-sheet'
+  const [viewMode, setViewMode] = useState<'guided' | 'technical-sheet'>('guided');
+  const [showAdditionalQC, setShowAdditionalQC] = useState<boolean>(false);
 
   // Track completion modal/card
   const [completedTest, setCompletedTest] = useState<SmartTestPlanItem | null>(null);
@@ -184,7 +192,7 @@ export const GuidedTestContainer: React.FC<Props> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-                Guided Test Mode
+                {viewMode === 'guided' ? 'Guided Laboratory Mode' : 'Technical Sheet View'}
               </span>
               <span className="text-xs text-slate-400">•</span>
               <span className="text-xs text-slate-500 font-mono">
@@ -201,7 +209,35 @@ export const GuidedTestContainer: React.FC<Props> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setViewMode('guided')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  viewMode === 'guided'
+                    ? 'bg-white text-indigo-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <SlidersHorizontal size={13} />
+                <span>Guided Mode</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('technical-sheet')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  viewMode === 'technical-sheet'
+                    ? 'bg-white text-indigo-700 shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FileText size={13} />
+                <span>Technical Sheet</span>
+              </button>
+            </div>
+
             <button
               onClick={onSwitchToExpertView}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors"
@@ -213,69 +249,133 @@ export const GuidedTestContainer: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Progress Bar & Simple Step Counts */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800">
-              Testing Progress: Step {currentStepIndex + 1} of {totalSteps}
-            </span>
-            <span className="text-slate-500 font-medium">
-              <strong className="text-indigo-600 font-bold">{completedCount}</strong> of {totalSteps} tests completed
-            </span>
-          </div>
+        {/* Progress Bar & Simple Step Counts (in Guided Mode) */}
+        {viewMode === 'guided' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-slate-800">
+                {showAdditionalQC
+                  ? 'Supplementary QC Inspection'
+                  : `Testing Progress: Step ${currentStepIndex + 1} of ${totalSteps}`}
+              </span>
+              <span className="text-slate-500 font-medium">
+                <strong className="text-indigo-600 font-bold">{completedCount}</strong> of {totalSteps} tests completed
+              </span>
+            </div>
 
-          <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-            <div
-              className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
+            <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+              <div
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stepper Carousel / Step Indicators */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-          {applicableItems.map((item, idx) => {
-            const isCurrent = item.testId === activeTestId;
-            const isCompleted = item.executionStatus === 'COMPLETED';
-            const isLocked = item.executionStatus === 'LOCKED' || item.executionStatus === 'BLOCKED';
+        {viewMode === 'guided' && (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            {applicableItems.map((item, idx) => {
+              const isCurrent = !showAdditionalQC && item.testId === activeTestId;
+              const isCompleted = item.executionStatus === 'COMPLETED';
+              const isLocked = item.executionStatus === 'LOCKED' || item.executionStatus === 'BLOCKED';
 
-            return (
-              <button
-                key={item.testId}
-                onClick={() => {
-                  setActiveTestId(item.testId);
-                  setIsReadyStarted(false);
-                  setCompletedTest(null);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all border ${
-                  isCurrent
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
-                    : isCompleted
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                    : isLocked
-                    ? 'bg-slate-50 text-slate-400 border-slate-200'
-                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-                ) : isCurrent ? (
-                  <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shrink-0" />
-                ) : isLocked ? (
-                  <Lock size={12} className="text-slate-400 shrink-0" />
-                ) : (
-                  <span className="w-2 h-2 rounded-full bg-slate-300 shrink-0" />
-                )}
-                <span>
-                  {idx + 1}. {item.testName.replace(' Verification Test', '').replace(' Test', '')}
+              return (
+                <button
+                  key={item.testId}
+                  onClick={() => {
+                    setShowAdditionalQC(false);
+                    setActiveTestId(item.testId);
+                    setIsReadyStarted(false);
+                    setCompletedTest(null);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all border ${
+                    isCurrent
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                      : isCompleted
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                      : isLocked
+                      ? 'bg-slate-50 text-slate-400 border-slate-200'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                  ) : isCurrent ? (
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse shrink-0" />
+                  ) : isLocked ? (
+                    <Lock size={12} className="text-slate-400 shrink-0" />
+                  ) : (
+                    <span className="w-2 h-2 rounded-full bg-slate-300 shrink-0" />
+                  )}
+                  <span>
+                    {idx + 1}. {item.testName.replace(' Verification Test', '').replace(' Test', '')}
+                  </span>
+                </button>
+              );
+            })}
+
+            {/* Supplementary QC Checks Pill */}
+            <button
+              onClick={() => {
+                setShowAdditionalQC(true);
+                setCompletedTest(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 transition-all border ${
+                showAdditionalQC
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                  : session.additionalQCChecks?.overallQcStatus === 'PASS'
+                  ? 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <Wrench size={13} />
+              <span>Supplementary QC</span>
+              {session.additionalQCChecks && (
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 ml-0.5">
+                  {session.additionalQCChecks.overallQcStatus}
                 </span>
-              </button>
-            );
-          })}
-        </div>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* TEST COMPLETION OVERLAY / CARD */}
+      {/* TECHNICAL SHEET VIEW */}
+      {viewMode === 'technical-sheet' ? (
+        <TechnicalSheetView
+          session={session}
+          onJumpToTest={(testId) => {
+            setViewMode('guided');
+            if (testId === 'test-additional-qc') {
+              setShowAdditionalQC(true);
+            } else {
+              setShowAdditionalQC(false);
+              const match = applicableItems.find((i) =>
+                i.testId === testId ||
+                i.testCategory.toLowerCase().includes(testId.replace('test-', '')) ||
+                i.testName.toLowerCase().includes(testId.replace('test-', ''))
+              );
+              if (match) {
+                setActiveTestId(match.testId);
+              }
+              setIsReadyStarted(true);
+            }
+          }}
+        />
+      ) : showAdditionalQC ? (
+        <GuidedAdditionalQCChecksStep
+          session={session}
+          isReadOnly={isReadOnly}
+          onSave={(checks) => {
+            onUpdateSession({ additionalQCChecks: checks });
+            setShowAdditionalQC(false);
+          }}
+          onBackToOverview={() => setShowAdditionalQC(false)}
+        />
+      ) : (
+        <>
+          {/* TEST COMPLETION OVERLAY / CARD */}
       {completedTest && (
         <div className="bg-white rounded-2xl border border-emerald-200 shadow-lg p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-150">
           <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
@@ -688,6 +788,8 @@ export const GuidedTestContainer: React.FC<Props> = ({
             </div>
           )}
         </div>
+      )}
+      </>
       )}
 
       {/* WHY AM I DOING THIS MODAL */}

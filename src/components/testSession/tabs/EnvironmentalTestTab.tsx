@@ -1,19 +1,21 @@
 import React from 'react';
-import { TestSession, EnvironmentalReading } from '../../../types/testSession';
+import { TestSession, EnvironmentalReading, TemperatureSpanObservation } from '../../../types/testSession';
 import { calculateTemperatureSpan } from '../../../metrology/calculations/environmental';
 import { ComplianceBadge } from '../../common/ComplianceBadge';
-import { Thermometer, Droplets, Gauge, Plus } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, Plus, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   session: TestSession;
   isReadOnly: boolean;
   onUpdateEnvironmentalReadings: (readings: EnvironmentalReading[]) => void;
+  onUpdateTemperatureSpanObservation?: (obs: TemperatureSpanObservation) => void;
 }
 
 export const EnvironmentalTestTab: React.FC<Props> = ({
   session,
   isReadOnly,
   onUpdateEnvironmentalReadings,
+  onUpdateTemperatureSpanObservation,
 }) => {
   const inst = session.instrumentSnapshot;
   const readings = session.environmentalReadings || [];
@@ -184,16 +186,51 @@ export const EnvironmentalTestTab: React.FC<Props> = ({
 
       {/* Temperature Span Summary */}
       {tempSpanEval && (
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Temperature Span Stability Evaluation
+              Temperature Span Stability Evaluation (Clause 3.9.2.2)
             </h5>
             <p className="text-xs text-slate-600 mt-1">
-              Temperature Difference ($\Delta T$): {tempSpanEval.temperatureDifferenceDeltaT.toFixed(1)}°C | Shift per 5°C: {tempSpanEval.spanShiftPer5C.toFixed(4)} {inst.unit}
+              Temperature Difference (ΔT): {tempSpanEval.temperatureDifferenceDeltaT.toFixed(1)}°C | Shift per 5°C: {tempSpanEval.spanShiftPer5C.toFixed(4)} {inst.unit} (MPE: ±{tempSpanEval.maxPermissibleShiftPer5C.toFixed(4)} {inst.unit})
             </p>
           </div>
-          <ComplianceBadge status={tempSpanEval.compliance} />
+          <div className="flex items-center gap-3">
+            <ComplianceBadge status={tempSpanEval.compliance} />
+            {!isReadOnly && onUpdateTemperatureSpanObservation && startReading && endReading && (
+              <button
+                onClick={() => {
+                  const spanObs: TemperatureSpanObservation = {
+                    temperatures: [
+                      {
+                        tempC: startReading.temperatureC,
+                        zeroErrorE0: 0,
+                        spanLoad: inst.maxCapacity,
+                        spanIndication: inst.maxCapacity,
+                        spanErrorE: 0,
+                      },
+                      {
+                        tempC: endReading.temperatureC,
+                        zeroErrorE0: 0,
+                        spanLoad: inst.maxCapacity,
+                        spanIndication: inst.maxCapacity,
+                        spanErrorE: 0,
+                      },
+                    ],
+                    temperatureDifferenceDeltaT: tempSpanEval.temperatureDifferenceDeltaT,
+                    spanShiftPer5C: tempSpanEval.spanShiftPer5C,
+                    maxPermissibleShiftPer5C: tempSpanEval.maxPermissibleShiftPer5C,
+                    compliance: tempSpanEval.compliance,
+                  };
+                  onUpdateTemperatureSpanObservation(spanObs);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-2xs"
+              >
+                <CheckCircle2 size={13} />
+                Save Span Stability
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

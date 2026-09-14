@@ -55,16 +55,15 @@ export const GuidedTiltingStep: React.FC<Props> = ({
   const handleFinish = () => {
     const obs: TiltingObservation = {
       positions: evaluation.positions.map((p) => ({
-        positionName: p.tiltDirection,
+        tiltDirection: p.tiltDirection,
         tiltValuePermil: p.tiltValuePermil,
         zeroErrorE0: p.zeroErrorE0,
-        loadErrorEL: p.correctedErrorEc,
-        errorDifferenceFromLevel: p.differenceFromLevelEc,
-        mpe: p.mpeInUnit,
+        correctedErrorEc: p.correctedErrorEc,
+        differenceFromLevelEc: p.differenceFromLevelEc,
+        mpeInUnit: p.mpeInUnit,
         compliance: p.compliance,
       })),
       maxDifferenceFromLevel: evaluation.maxDifferenceFromLevel,
-      limitingTiltValuePermil: 50,
       compliance: evaluation.overallCompliance,
     };
     onSave(obs);
