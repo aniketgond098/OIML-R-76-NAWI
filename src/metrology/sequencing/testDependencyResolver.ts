@@ -43,7 +43,13 @@ export function inspectTestProgressInSession(
       if (obsList.length === 0) return { isCompleted: false, isInProgress: false, compliance: 'NOT_EVALUATED' };
       // Standard platforms require at least 4 corner/support points
       const isCompleted = obsList.length >= 4 && obsList.every((o) => o.indicatedValue !== undefined && o.indicatedValue > 0);
-      const anyFail = obsList.some((o) => o.compliance === 'FAIL');
+      const anyFail = obsList.some(
+        (o) =>
+          o.compliance === 'FAIL' ||
+          (o.mpeInUnit !== undefined &&
+            o.correctedErrorEc !== undefined &&
+            Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+      );
       const allPass = isCompleted && obsList.every((o) => o.compliance === 'PASS');
       return {
         isCompleted,
@@ -57,7 +63,13 @@ export function inspectTestProgressInSession(
       if (obsList.length === 0) return { isCompleted: false, isInProgress: false, compliance: 'NOT_EVALUATED' };
       // Routine weighing test has at least 5 points ascending/descending
       const isCompleted = obsList.length >= 5 && obsList.every((o) => o.indicatedValue !== undefined);
-      const anyFail = obsList.some((o) => o.compliance === 'FAIL');
+      const anyFail = obsList.some(
+        (o) =>
+          o.compliance === 'FAIL' ||
+          (o.mpeInUnit !== undefined &&
+            o.correctedErrorEc !== undefined &&
+            Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+      );
       const allPass = isCompleted && obsList.every((o) => o.compliance === 'PASS');
       return {
         isCompleted,
@@ -70,7 +82,13 @@ export function inspectTestProgressInSession(
       const seriesList = session.repeatabilitySeries || [];
       if (seriesList.length === 0) return { isCompleted: false, isInProgress: false, compliance: 'NOT_EVALUATED' };
       const isCompleted = seriesList.length >= 1 && seriesList.every((s) => s.readings && s.readings.length >= 3);
-      const anyFail = seriesList.some((s) => s.compliance === 'FAIL');
+      const anyFail = seriesList.some(
+        (s) =>
+          s.compliance === 'FAIL' ||
+          (s.mpeInUnit !== undefined &&
+            s.deltaI !== undefined &&
+            s.deltaI > s.mpeInUnit + 1e-9)
+      );
       const allPass = isCompleted && seriesList.every((s) => s.compliance === 'PASS');
       return {
         isCompleted,

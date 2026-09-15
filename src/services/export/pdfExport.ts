@@ -27,7 +27,7 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(lab.name.toUpperCase(), margin + 5, y + 7);
+  doc.text(`WEIGHWISE METROLOGY • ${lab.name.toUpperCase()}`, margin + 5, y + 7);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
@@ -363,7 +363,7 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
     doc.setTextColor(148, 163, 184); // Slate 400
 
     doc.text(
-      `OIML R 76-1:2006 (E) NAWI Test Report | Standard: ${report.standardEdition || 'OIML R 76-1:2006'} | RuleSet: ${report.ruleSetVersion || 'OIML-R76-2006-v1.0'} | SHA-256: ${report.sha256IntegrityHash.slice(0, 28)}...`,
+      `WeighWise • OIML R 76-1:2006 (E) NAWI Test Report | Standard: ${report.standardEdition || 'OIML R 76-1:2006'} | RuleSet: ${report.ruleSetVersion || 'OIML-R76-2006-v1.0'} | SHA-256: ${report.sha256IntegrityHash.slice(0, 28)}...`,
       margin,
       pageHeight - 5
     );
@@ -399,9 +399,9 @@ export function generateWorksheetPDF(session: TestSession, lab?: Laboratory): vo
   doc.rect(margin, y, pageWidth - 2 * margin, 24, 'F');
 
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text(laboratoryName.toUpperCase(), margin + 5, y + 7);
+  doc.text(`WEIGHWISE • ${laboratoryName.toUpperCase()}`, margin + 5, y + 7);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');

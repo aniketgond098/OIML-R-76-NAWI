@@ -1,5 +1,5 @@
 {
-  "name": "OIML R-76 NAWI Test Report System",
+  "name": "WeighWise",
   "description": "Production-grade Legal Metrology Test Reporting & Compliance Platform for Non-Automatic Weighing Instruments as per OIML Recommendation R 76-1:2006.",
   "requestFramePermissions": [
     "camera"

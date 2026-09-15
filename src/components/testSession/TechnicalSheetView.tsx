@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TestSession } from '../../types/testSession';
 import { db } from '../../services/storage/database';
 import { generateWorksheetPDF } from '../../services/export/pdfExport';
+import { WeighWiseLogo } from '../common/WeighWiseLogo';
 import {
   CheckCircle2,
   XCircle,
@@ -214,6 +215,19 @@ export const TechnicalSheetView: React.FC<Props> = ({ session, onJumpToTest, onP
       >
         {/* Header Block: Instrument & Laboratory Metadata */}
         <div className="border-b-2 border-slate-300 bg-slate-50/70 p-5">
+          {/* Official Document Banner */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 mb-4 border-b border-slate-200 gap-2">
+            <WeighWiseLogo variant="horizontal" size="sm" showSubtitle={true} />
+            <div className="text-left sm:text-right">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono block">
+                Standard Test Record • Form OIML-R76-WS
+              </span>
+              <span className="text-xs font-bold text-slate-800 font-mono">
+                Session: {session.id}
+              </span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
             {/* Column 1: Instrument Spec */}
             <div className="space-y-1">
@@ -558,15 +572,15 @@ export const TechnicalSheetView: React.FC<Props> = ({ session, onJumpToTest, onP
                 </div>
                 <div>
                   <span className="text-slate-500 text-[10px] uppercase font-sans block">Total Creep (ΔI)</span>
-                  <strong className="text-slate-900">{creepObs.maxCreepDeltaI != null ? `${creepObs.maxCreepDeltaI.toFixed(4)} ${inst.unit}` : '-'}</strong>
+                  <strong className="text-slate-900">{creepObs.driftValue != null ? `${creepObs.driftValue.toFixed(4)} ${inst.unit}` : '-'}</strong>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[10px] uppercase font-sans block">MPE Limit (0.5e)</span>
-                  <span className="text-slate-700">{creepObs.mpeInUnit != null ? `≤ ${creepObs.mpeInUnit.toFixed(4)} ${inst.unit}` : '-'}</span>
+                  <span className="text-slate-700">{creepObs.maxPermissibleDrift != null ? `≤ ${creepObs.maxPermissibleDrift.toFixed(4)} ${inst.unit}` : '-'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 text-[10px] uppercase font-sans block">Duration</span>
-                  <span className="text-slate-700 font-sans">{creepObs.durationSeconds ?? 0} seconds</span>
+                  <span className="text-slate-700 font-sans">{creepObs.testDurationSeconds ?? 0} seconds</span>
                 </div>
               </div>
             </div>

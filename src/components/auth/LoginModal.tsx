@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal } from '../common/Modal';
 import { useAuth } from '../../services/auth/authContext';
+import { WeighWiseLogo } from '../common/WeighWiseLogo';
 import { Key, ShieldCheck, User } from 'lucide-react';
 
 interface Props {
@@ -32,6 +33,10 @@ export const LoginModal: React.FC<Props> = ({ isOpen, onClose }) => {
       maxWidth="md"
     >
       <div className="space-y-4 text-xs">
+        <div className="flex justify-center py-1">
+          <WeighWiseLogo variant="stacked" size="md" showSubtitle={true} />
+        </div>
+
         {error && (
           <div className="p-2.5 bg-rose-50 border border-rose-200 rounded text-rose-800 text-xs">
             {error}

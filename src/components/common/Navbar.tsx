@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../../services/auth/authContext';
 import { db } from '../../services/storage/database';
 import { SyncStatusBadge } from './SyncStatusBadge';
+import { WeighWiseLogo } from './WeighWiseLogo';
 import {
-  Scale,
   ShieldCheck,
   ChevronDown,
   CheckCircle2,
@@ -64,18 +64,12 @@ export const Navbar: React.FC<Props> = ({
           </button>
         )}
 
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-900 text-white flex items-center justify-center shadow-xs shrink-0">
-          <Scale size={20} className="text-indigo-200" />
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-none tracking-tight truncate">
-              NAWI Test Report
-            </h1>
-          </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 mt-1 flex items-center gap-1.5 truncate max-w-[200px] sm:max-w-md">
-            <ShieldCheck size={13} className="text-emerald-600 shrink-0" />
-            <span className="truncate">{lab?.name}</span>
+        <div className="flex items-center gap-3">
+          <WeighWiseLogo variant="horizontal" size="md" showSubtitle={true} />
+          <div className="hidden lg:block h-6 w-px bg-slate-200 ml-1" />
+          <p className="hidden lg:flex text-[11px] text-slate-500 items-center gap-1.5 truncate max-w-xs">
+            <ShieldCheck size={13} className="text-teal-600 shrink-0" />
+            <span className="truncate font-medium">{lab?.name}</span>
           </p>
         </div>
       </div>

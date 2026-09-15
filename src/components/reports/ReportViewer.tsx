@@ -80,14 +80,22 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
   };
 
   const handleInspectEccentricity = (eccList: any[]) => {
-    const firstPoint = eccList[0];
-    if (!firstPoint) return;
+    // Inspect the failing point if one exists, otherwise the first point
+    const failPoint = eccList.find(
+      (p) =>
+        p.compliance === 'FAIL' ||
+        (p.mpeInUnit != null &&
+          p.correctedErrorEc != null &&
+          Math.abs(p.correctedErrorEc) > p.mpeInUnit + 1e-9)
+    );
+    const targetPoint = failPoint || eccList[0];
+    if (!targetPoint) return;
     const result = calculateEccentricityPosition({
-      positionId: firstPoint.positionId ?? 1,
-      positionName: firstPoint.positionName ?? 'Center',
-      nominalLoadL: firstPoint.nominalLoad ?? (inst.maxCapacity / 3),
-      indicatedValueI: firstPoint.indicatedValue ?? firstPoint.nominalLoad,
-      turningPointDeltaL: firstPoint.turningPointDeltaL,
+      positionId: targetPoint.positionId ?? 1,
+      positionName: targetPoint.positionName ?? 'Center',
+      nominalLoadL: targetPoint.nominalLoad ?? (inst.maxCapacity / 3),
+      indicatedValueI: targetPoint.indicatedValue ?? targetPoint.nominalLoad,
+      turningPointDeltaL: targetPoint.turningPointDeltaL,
       zeroErrorE0: session.zeroSettingObservation?.calculatedZeroErrorE0 || 0,
       verificationScaleIntervalE: inst.verificationScaleInterval || 1,
       unit: inst.unit,
@@ -375,70 +383,103 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Repeatability Card */}
-              {session.repeatabilitySeries && session.repeatabilitySeries.length > 0 && (
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">Repeatability (Clause 3.6.1)</span>
-                    <ComplianceBadge status={session.repeatabilitySeries[0]?.compliance || 'NOT_EVALUATED'} size="sm" />
+              {session.repeatabilitySeries && session.repeatabilitySeries.length > 0 && (() => {
+                const repFail = session.repeatabilitySeries.some(
+                  (s) => s.compliance === 'FAIL' || (s.mpeInUnit !== undefined && s.deltaI !== undefined && s.deltaI > s.mpeInUnit + 1e-9)
+                );
+                const repStatus = repFail ? 'FAIL' : session.repeatabilitySeries.every((s) => s.compliance === 'PASS') ? 'PASS' : 'NOT_EVALUATED';
+                return (
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">Repeatability (Clause 3.6.1)</span>
+                      <ComplianceBadge status={repStatus} size="sm" />
+                    </div>
+                    <p className="text-slate-600">
+                      Load: <strong className="font-mono">{session.repeatabilitySeries[0]?.nominalLoad} {inst.unit}</strong> | Span ΔI: <strong className="font-mono text-slate-900">{session.repeatabilitySeries[0]?.deltaI?.toFixed(4)} {inst.unit}</strong>
+                    </p>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-slate-500 font-mono text-[11px]">|MPE| = {session.repeatabilitySeries[0]?.mpeInUnit?.toFixed(4)} {inst.unit}</span>
+                      <button
+                        onClick={() => handleInspectRepeatability(session.repeatabilitySeries[0])}
+                        className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
+                      >
+                        <Calculator size={11} /> View Calculation Proof
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-slate-600">
-                    Load: <strong className="font-mono">{session.repeatabilitySeries[0]?.nominalLoad} {inst.unit}</strong> | Span ΔI: <strong className="font-mono text-slate-900">{session.repeatabilitySeries[0]?.deltaI?.toFixed(4)} {inst.unit}</strong>
-                  </p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-mono text-[11px]">|MPE| = {session.repeatabilitySeries[0]?.mpeInUnit?.toFixed(4)} {inst.unit}</span>
-                    <button
-                      onClick={() => handleInspectRepeatability(session.repeatabilitySeries[0])}
-                      className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
-                    >
-                      <Calculator size={11} /> View Calculation Proof
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Eccentricity Card */}
-              {session.eccentricityObservations && session.eccentricityObservations.length > 0 && (
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">Eccentric Loading (Clause 3.6.2)</span>
-                    <ComplianceBadge status={session.eccentricityObservations[0]?.compliance || 'NOT_EVALUATED'} size="sm" />
+              {session.eccentricityObservations && session.eccentricityObservations.length > 0 && (() => {
+                const eccFail = session.eccentricityObservations.some(
+                  (o) =>
+                    o.compliance === 'FAIL' ||
+                    (o.mpeInUnit !== undefined &&
+                      o.correctedErrorEc !== undefined &&
+                      Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+                );
+                const minReq = Math.max(
+                  4,
+                  inst?.numberOfSupportPoints && inst.numberOfSupportPoints <= 4
+                    ? 4
+                    : (inst?.numberOfSupportPoints || 4)
+                );
+                const eccComplete =
+                  session.eccentricityObservations.length >= minReq &&
+                  session.eccentricityObservations.every(
+                    (o) => o.compliance === 'PASS' && o.indicatedValue !== undefined
+                  );
+                const eccStatus = eccFail ? 'FAIL' : eccComplete ? 'PASS' : 'NOT_EVALUATED';
+                return (
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">Eccentric Loading (Clause 3.6.2)</span>
+                      <ComplianceBadge status={eccStatus} size="sm" />
+                    </div>
+                    <p className="text-slate-600">
+                      Positions Tested: <strong className="font-mono">{session.eccentricityObservations.length}</strong> | Max Error: <strong className="font-mono text-slate-900">{Math.max(...session.eccentricityObservations.map((o) => Math.abs(o.correctedErrorEc || 0))).toFixed(4)} {inst.unit}</strong>
+                    </p>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-slate-500 font-mono text-[11px]">MPE = ±{session.eccentricityObservations[0]?.mpeInUnit?.toFixed(4)} {inst.unit}</span>
+                      <button
+                        onClick={() => handleInspectEccentricity(session.eccentricityObservations)}
+                        className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
+                      >
+                        <Calculator size={11} /> View Calculation Proof
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-slate-600">
-                    Positions Tested: <strong className="font-mono">{session.eccentricityObservations.length}</strong> | Max Error: <strong className="font-mono text-slate-900">{Math.max(...session.eccentricityObservations.map((o) => Math.abs(o.correctedErrorEc))).toFixed(4)} {inst.unit}</strong>
-                  </p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-mono text-[11px]">MPE = ±{session.eccentricityObservations[0]?.mpeInUnit?.toFixed(4)} {inst.unit}</span>
-                    <button
-                      onClick={() => handleInspectEccentricity(session.eccentricityObservations)}
-                      className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
-                    >
-                      <Calculator size={11} /> View Calculation Proof
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Zero-Setting Card */}
-              {session.zeroSettingObservation && (
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-900">Zero-Setting Accuracy (Clause 4.5.2)</span>
-                    <ComplianceBadge status={session.zeroSettingObservation.compliance || 'PASS'} size="sm" />
+              {session.zeroSettingObservation && (() => {
+                const z = session.zeroSettingObservation;
+                const e0 = Math.abs(z.calculatedZeroErrorE0 || 0);
+                const maxZero = z.maxPermissibleZeroError || 0.25 * (inst.verificationScaleInterval || 1);
+                const zStatus = z.compliance === 'FAIL' || e0 > maxZero + 1e-9 ? 'FAIL' : z.compliance === 'PASS' || e0 <= maxZero + 1e-9 ? 'PASS' : 'NOT_EVALUATED';
+                return (
+                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">Zero-Setting Accuracy (Clause 4.5.2)</span>
+                      <ComplianceBadge status={zStatus} size="sm" />
+                    </div>
+                    <p className="text-slate-600">
+                      Zero Error (E₀): <strong className="font-mono text-slate-900">{(z.calculatedZeroErrorE0 || 0).toFixed(5)} {inst.unit}</strong>
+                    </p>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-slate-500 font-mono text-[11px]">Limit: ±0.25 e (±{(0.25 * (inst.verificationScaleInterval || 1)).toFixed(5)} {inst.unit})</span>
+                      <button
+                        onClick={() => handleInspectZero(session.zeroSettingObservation)}
+                        className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
+                      >
+                        <Calculator size={11} /> View Calculation Proof
+                      </button>
+                    </div>
                   </div>
-                  <p className="text-slate-600">
-                    Zero Error (E₀): <strong className="font-mono text-slate-900">{(session.zeroSettingObservation.calculatedZeroErrorE0 || 0).toFixed(5)} {inst.unit}</strong>
-                  </p>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-slate-500 font-mono text-[11px]">Limit: ±0.25 e (±{(0.25 * (inst.verificationScaleInterval || 1)).toFixed(5)} {inst.unit})</span>
-                    <button
-                      onClick={() => handleInspectZero(session.zeroSettingObservation)}
-                      className="inline-flex items-center gap-1 text-[11px] text-indigo-700 font-semibold hover:underline cursor-pointer"
-                    >
-                      <Calculator size={11} /> View Calculation Proof
-                    </button>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Tare Card */}
               {session.tareObservation && (

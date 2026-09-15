@@ -376,57 +376,117 @@ export const GuidedTestContainer: React.FC<Props> = ({
       ) : (
         <>
           {/* TEST COMPLETION OVERLAY / CARD */}
-      {completedTest && (
-        <div className="bg-white rounded-2xl border border-emerald-200 shadow-lg p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-150">
-          <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-            <CheckCircle2 size={32} />
-          </div>
+      {completedTest && (() => {
+        const planItem = session.testPlan?.find((p) => p.category === completedTest.testCategory);
+        let testCompliance = planItem?.compliance || completedTest.complianceStatus || 'NOT_EVALUATED';
 
-          <div className="space-y-1">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-700">
-              Test Completed ✓
-            </span>
-            <h3 className="text-xl font-bold text-slate-900">{completedTest.testName}</h3>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              All required measurements have been recorded and evaluated against OIML R 76-1:2006 requirements.
-            </p>
-          </div>
+        // Ensure category-specific failure is immediately reflected
+        if (completedTest.testCategory === 'ECCENTRICITY') {
+          const hasFail = session.eccentricityObservations?.some(
+            (o) =>
+              o.compliance === 'FAIL' ||
+              (o.mpeInUnit !== undefined &&
+                o.correctedErrorEc !== undefined &&
+                Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+          );
+          if (hasFail) testCompliance = 'FAIL';
+        } else if (completedTest.testCategory === 'WEIGHING_ACCURACY') {
+          const hasFail = session.weighingObservations?.some(
+            (o) =>
+              o.compliance === 'FAIL' ||
+              (o.mpeInUnit !== undefined &&
+                o.correctedErrorEc !== undefined &&
+                Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+          );
+          if (hasFail) testCompliance = 'FAIL';
+        } else if (completedTest.testCategory === 'REPEATABILITY') {
+          const hasFail = session.repeatabilitySeries?.some(
+            (s) =>
+              s.compliance === 'FAIL' ||
+              (s.mpeInUnit !== undefined && s.deltaI !== undefined && s.deltaI > s.mpeInUnit + 1e-9)
+          );
+          if (hasFail) testCompliance = 'FAIL';
+        }
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-xs font-bold">
-            Result: PASS
-          </div>
+        const isFail = testCompliance === 'FAIL';
+        const isPass = testCompliance === 'PASS';
 
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => {
-                setCompletedTest(null);
-                setIsReadyStarted(true);
-              }}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors w-full sm:w-auto"
+        return (
+          <div
+            className={`bg-white rounded-2xl border ${
+              isFail ? 'border-rose-300' : isPass ? 'border-emerald-200' : 'border-amber-200'
+            } shadow-lg p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-150`}
+          >
+            <div
+              className={`w-14 h-14 ${
+                isFail ? 'bg-rose-100 text-rose-600' : isPass ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+              } rounded-full flex items-center justify-center mx-auto shadow-inner`}
             >
-              Review Test Readings
-            </button>
+              {isFail ? <XCircle size={32} /> : isPass ? <CheckCircle2 size={32} /> : <Clock size={32} />}
+            </div>
 
-            {getNextTest(currentStepIndex) ? (
-              <button
-                onClick={handleContinueToNext}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
+            <div className="space-y-1">
+              <span
+                className={`text-[10px] uppercase font-bold tracking-wider ${
+                  isFail ? 'text-rose-700' : isPass ? 'text-emerald-700' : 'text-amber-700'
+                }`}
               >
-                <span>Continue to Next: {getNextTest(currentStepIndex)?.testName}</span>
-                <ArrowRight size={14} />
-              </button>
-            ) : (
+                {isFail ? 'Test Recorded — Tolerance Exceeded ✕' : isPass ? 'Test Completed ✓' : 'Test In Progress ⏳'}
+              </span>
+              <h3 className="text-xl font-bold text-slate-900">{completedTest.testName}</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                {isFail
+                  ? 'One or more observations exceed the Maximum Permissible Error (MPE) under OIML R 76-1:2006.'
+                  : isPass
+                  ? 'All required measurements have been recorded and evaluated as compliant with OIML R 76-1:2006.'
+                  : 'Observations recorded. Complete all mandatory positions/cycles to evaluate compliance.'}
+              </p>
+            </div>
+
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full font-mono text-xs font-bold ${
+                isFail
+                  ? 'bg-rose-50 border border-rose-200 text-rose-800'
+                  : isPass
+                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                  : 'bg-amber-50 border border-amber-200 text-amber-800'
+              }`}
+            >
+              Result: {testCompliance}
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={onSwitchToExpertView}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
+                onClick={() => {
+                  setCompletedTest(null);
+                  setIsReadyStarted(true);
+                }}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors w-full sm:w-auto"
               >
-                <span>All Tests Finished — Proceed to Final Review</span>
-                <ArrowRight size={14} />
+                Review Test Readings
               </button>
-            )}
+
+              {getNextTest(currentStepIndex) ? (
+                <button
+                  onClick={handleContinueToNext}
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
+                >
+                  <span>Continue to Next: {getNextTest(currentStepIndex)?.testName}</span>
+                  <ArrowRight size={14} />
+                </button>
+              ) : (
+                <button
+                  onClick={onSwitchToExpertView}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 w-full sm:w-auto"
+                >
+                  <span>All Tests Finished — Proceed to Final Review</span>
+                  <ArrowRight size={14} />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ACTIVE STEP CONTENT */}
       {!completedTest && currentItem && (

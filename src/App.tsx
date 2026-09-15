@@ -212,6 +212,14 @@ function AppContent() {
               onNavigateToReports={() => handleNavChange('reports')}
               onSelectTestSession={handleSelectTestSession}
               onSelectReport={handleSelectReport}
+              onStartNewTestSession={() => {
+                setPreselectedInstrumentForNewTest(undefined);
+                setIsStartingNewTestModalOpen(true);
+              }}
+              onNavigateToStandards={() => handleNavChange('standards')}
+              onNavigateToEquipment={() => handleNavChange('equipment')}
+              onNavigateToAudit={() => handleNavChange('audit')}
+              onOpenScanModal={() => setIsQRScannerOpen(true)}
             />
           )}
 

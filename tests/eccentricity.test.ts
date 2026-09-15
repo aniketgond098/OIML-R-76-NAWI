@@ -3,6 +3,7 @@ import {
   getRecommendedEccentricityLoad,
   calculateEccentricityPosition,
 } from '../src/metrology/calculations/eccentricity';
+import { evaluateOverallTestSessionCompliance } from '../src/metrology/compliance/complianceEngine';
 
 describe('OIML R 76-1:2006 Clause 3.6.2 & Clause A.4.7 - Eccentricity Testing', () => {
   describe('Test Load Selection Rules', () => {
@@ -67,6 +68,227 @@ describe('OIML R 76-1:2006 Clause 3.6.2 & Clause A.4.7 - Eccentricity Testing', 
       expect(result.correctedErrorEc).toBeCloseTo(0.1, 5);
       expect(result.mpeInUnit).toBeCloseTo(0.05, 5);
       expect(result.compliance).toBe('FAIL');
+    });
+  });
+
+  describe('Eccentricity Session & Compliance Engine Integration (OIML R 76-1:2006 Clause 3.6.2)', () => {
+    const mockInstrument: any = {
+      id: 'INST-001',
+      serialNumber: 'SN-12345',
+      model: 'PX-200',
+      manufacturer: 'Mettler',
+      accuracyClass: 'CLASS_III',
+      maxCapacity: 150,
+      minCapacity: 1,
+      verificationScaleInterval: 0.05,
+      actualScaleInterval: 0.05,
+      unit: 'kg',
+      numberOfSupportPoints: 4,
+      loadReceptorType: 'Rectangular Platform',
+    };
+
+    it('must NEVER mark eccentricity as PASS when two incorrect/wrong values exceed MPE', () => {
+      // 5 positions tested, 2 positions have wrong/incorrect readings exceeding MPE limit
+      const eccentricityObservations: any[] = [
+        {
+          id: 'ecc-1',
+          positionId: 1,
+          positionName: 'Center',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.0,
+          mpeInUnit: 0.05,
+          compliance: 'PASS',
+        },
+        {
+          id: 'ecc-2',
+          positionId: 2,
+          positionName: 'Front-Left',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: -0.01,
+          mpeInUnit: 0.05,
+          compliance: 'PASS',
+        },
+        {
+          id: 'ecc-3',
+          positionId: 3,
+          positionName: 'Front-Right',
+          nominalLoad: 50,
+          indicatedValue: 50.15, // WRONG / INCORRECT VALUE
+          correctedErrorEc: 0.15, // Exceeds MPE of 0.05
+          mpeInUnit: 0.05,
+          compliance: 'FAIL',
+        },
+        {
+          id: 'ecc-4',
+          positionId: 4,
+          positionName: 'Rear-Left',
+          nominalLoad: 50,
+          indicatedValue: 50.2, // WRONG / INCORRECT VALUE
+          correctedErrorEc: 0.2, // Exceeds MPE of 0.05
+          mpeInUnit: 0.05,
+          compliance: 'FAIL',
+        },
+        {
+          id: 'ecc-5',
+          positionId: 5,
+          positionName: 'Rear-Right',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.02,
+          mpeInUnit: 0.05,
+          compliance: 'PASS',
+        },
+      ];
+
+      const session: any = {
+        id: 'SESSION-001',
+        testSessionNumber: 'TS-2026-001',
+        instrumentId: 'INST-001',
+        instrumentSnapshot: mockInstrument,
+        verificationType: 'INITIAL',
+        status: 'IN_PROGRESS',
+        testPlan: [
+          {
+            category: 'ECCENTRICITY',
+            name: 'Eccentricity / Off-Centre Load Test',
+            clauseRef: 'OIML R 76-1:2006, Clause 3.6.2',
+            isApplicable: true,
+            isMandatory: true,
+            status: 'IN_PROGRESS',
+            compliance: 'NOT_EVALUATED',
+          },
+        ],
+        eccentricityObservations,
+      };
+
+      const result = evaluateOverallTestSessionCompliance(session);
+
+      expect(session.testPlan[0].compliance).toBe('FAIL');
+      expect(result.overallCompliance).toBe('FAIL');
+      expect(result.summary.failedCount).toBe(1);
+    });
+
+    it('must evaluate eccentricity as FAIL if error exceeds MPE even if observation compliance field was omitted or stale', () => {
+      const eccentricityObservations: any[] = [
+        {
+          id: 'ecc-1',
+          positionId: 1,
+          positionName: 'Center',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.0,
+          mpeInUnit: 0.05,
+        },
+        {
+          id: 'ecc-2',
+          positionId: 2,
+          positionName: 'Front-Left',
+          nominalLoad: 50,
+          indicatedValue: 50.15, // WRONG VALUE: Error = +0.15 exceeds MPE 0.05
+          correctedErrorEc: 0.15,
+          mpeInUnit: 0.05,
+        },
+        {
+          id: 'ecc-3',
+          positionId: 3,
+          positionName: 'Front-Right',
+          nominalLoad: 50,
+          indicatedValue: 50.2, // WRONG VALUE: Error = +0.20 exceeds MPE 0.05
+          correctedErrorEc: 0.2,
+          mpeInUnit: 0.05,
+        },
+        {
+          id: 'ecc-4',
+          positionId: 4,
+          positionName: 'Rear-Left',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.01,
+          mpeInUnit: 0.05,
+        },
+      ];
+
+      const session: any = {
+        id: 'SESSION-002',
+        testSessionNumber: 'TS-2026-002',
+        instrumentId: 'INST-001',
+        instrumentSnapshot: mockInstrument,
+        verificationType: 'INITIAL',
+        status: 'IN_PROGRESS',
+        testPlan: [
+          {
+            category: 'ECCENTRICITY',
+            name: 'Eccentricity / Off-Centre Load Test',
+            clauseRef: 'OIML R 76-1:2006, Clause 3.6.2',
+            isApplicable: true,
+            isMandatory: true,
+            status: 'IN_PROGRESS',
+            compliance: 'NOT_EVALUATED',
+          },
+        ],
+        eccentricityObservations,
+      };
+
+      const result = evaluateOverallTestSessionCompliance(session);
+
+      expect(session.testPlan[0].compliance).toBe('FAIL');
+      expect(result.overallCompliance).toBe('FAIL');
+    });
+
+    it('must NOT evaluate eccentricity as PASS when only 2 positions are recorded for a 4-point platform (incomplete test)', () => {
+      // Only 2 positions entered out of required 4-5
+      const eccentricityObservations: any[] = [
+        {
+          id: 'ecc-1',
+          positionId: 1,
+          positionName: 'Center',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.0,
+          mpeInUnit: 0.05,
+          compliance: 'PASS',
+        },
+        {
+          id: 'ecc-2',
+          positionId: 2,
+          positionName: 'Front-Left',
+          nominalLoad: 50,
+          indicatedValue: 50.0,
+          correctedErrorEc: 0.01,
+          mpeInUnit: 0.05,
+          compliance: 'PASS',
+        },
+      ];
+
+      const session: any = {
+        id: 'SESSION-003',
+        testSessionNumber: 'TS-2026-003',
+        instrumentId: 'INST-001',
+        instrumentSnapshot: mockInstrument,
+        verificationType: 'INITIAL',
+        status: 'IN_PROGRESS',
+        testPlan: [
+          {
+            category: 'ECCENTRICITY',
+            name: 'Eccentricity / Off-Centre Load Test',
+            clauseRef: 'OIML R 76-1:2006, Clause 3.6.2',
+            isApplicable: true,
+            isMandatory: true,
+            status: 'IN_PROGRESS',
+            compliance: 'NOT_EVALUATED',
+          },
+        ],
+        eccentricityObservations,
+      };
+
+      const result = evaluateOverallTestSessionCompliance(session);
+
+      // Must be NOT_EVALUATED / IN_PROGRESS, definitely NOT PASS!
+      expect(session.testPlan[0].compliance).toBe('NOT_EVALUATED');
+      expect(session.testPlan[0].status).toBe('IN_PROGRESS');
+      expect(result.overallCompliance).toBe('NOT_EVALUATED');
     });
   });
 });

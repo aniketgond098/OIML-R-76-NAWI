@@ -4,6 +4,7 @@ import {
   PublicVerificationResult,
   PublicVerificationStatus,
 } from '../../types/verification';
+import { WeighWiseLogo } from '../common/WeighWiseLogo';
 import {
   CheckCircle2,
   XCircle,
@@ -198,15 +199,16 @@ export const PublicVerificationView: React.FC<Props> = ({
               </button>
             )}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-                <Scale size={18} />
-              </div>
+              <WeighWiseLogo variant="icon" size={32} />
               <div>
-                <h1 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                  Legal Metrology Verification
+                <h1 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight flex items-center gap-1.5">
+                  <span>WeighWise Verification</span>
+                  <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                    OIML R 76
+                  </span>
                 </h1>
                 <p className="text-[10px] text-slate-500 font-mono">
-                  OIML R 76-1:2006 • Non-Automatic Weighing Instruments
+                  Official Registry • Non-Automatic Weighing Instruments
                 </p>
               </div>
             </div>

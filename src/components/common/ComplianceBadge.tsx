@@ -16,23 +16,22 @@ export const ComplianceBadge: React.FC<Props> = ({
   className = '',
 }) => {
   const sizeClasses = {
-    sm: 'px-2 py-0.5 text-xs font-semibold gap-1',
-    md: 'px-2.5 py-1 text-xs font-semibold gap-1.5',
-    lg: 'px-3.5 py-1.5 text-sm font-bold gap-2',
+    sm: 'px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase gap-1',
+    md: 'px-2.5 py-0.5 text-xs font-bold tracking-wide uppercase gap-1.5',
+    lg: 'px-3.5 py-1 text-xs font-black tracking-wider uppercase gap-2',
   };
 
   const iconSizes = {
     sm: 12,
-    md: 14,
-    lg: 16,
+    md: 13,
+    lg: 15,
   };
 
   switch (status) {
     case 'PASS':
       return (
         <span
-          id={`badge-compliance-pass-${Math.random().toString(36).substr(2, 4)}`}
-          className={`inline-flex items-center rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs ${sizeClasses[size]} ${className}`}
+          className={`inline-flex items-center rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 font-semibold shadow-2xs ${sizeClasses[size]} ${className}`}
         >
           <CheckCircle2 size={iconSizes[size]} className="text-emerald-600 shrink-0" />
           {showLabel && <span>PASS</span>}
@@ -42,8 +41,7 @@ export const ComplianceBadge: React.FC<Props> = ({
     case 'FAIL':
       return (
         <span
-          id={`badge-compliance-fail-${Math.random().toString(36).substr(2, 4)}`}
-          className={`inline-flex items-center rounded-md bg-rose-50 text-rose-700 border border-rose-200/80 shadow-xs ${sizeClasses[size]} ${className}`}
+          className={`inline-flex items-center rounded-md bg-rose-50 text-rose-800 border border-rose-300 font-semibold shadow-2xs ${sizeClasses[size]} ${className}`}
         >
           <XCircle size={iconSizes[size]} className="text-rose-600 shrink-0" />
           {showLabel && <span>FAIL</span>}
@@ -54,8 +52,7 @@ export const ComplianceBadge: React.FC<Props> = ({
     default:
       return (
         <span
-          id={`badge-compliance-not-eval-${Math.random().toString(36).substr(2, 4)}`}
-          className={`inline-flex items-center rounded-md bg-amber-50 text-amber-800 border border-amber-200/80 shadow-xs ${sizeClasses[size]} ${className}`}
+          className={`inline-flex items-center rounded-md bg-amber-50 text-amber-800 border border-amber-300 font-semibold shadow-2xs ${sizeClasses[size]} ${className}`}
         >
           <AlertCircle size={iconSizes[size]} className="text-amber-600 shrink-0" />
           {showLabel && <span>NOT EVALUATED</span>}

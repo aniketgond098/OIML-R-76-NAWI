@@ -3,6 +3,7 @@ import { Instrument } from '../../types/instrument';
 import { TestPlanItem, TestSession } from '../../types/testSession';
 import { ruleEngine } from '../rules/ruleEngine';
 import { testSequencingEngine } from '../sequencing/testSequencingEngine';
+import { calculateEccentricityPosition } from '../calculations/eccentricity';
 
 /**
  * Generate Applicable Test Plan based on Instrument Metrological Characteristics
@@ -50,15 +51,27 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           if (!obs || obs.length === 0) {
             item.status = 'PENDING';
             item.compliance = 'NOT_EVALUATED';
-          } else if (obs.some((o) => o.compliance === 'FAIL')) {
-            item.status = 'COMPLETED';
-            item.compliance = 'FAIL';
-          } else if (obs.some((o) => o.compliance === 'NOT_EVALUATED')) {
-            item.status = 'IN_PROGRESS';
-            item.compliance = 'NOT_EVALUATED';
           } else {
-            item.status = 'COMPLETED';
-            item.compliance = 'PASS';
+            const hasAnyFail = obs.some(
+              (o) =>
+                o.compliance === 'FAIL' ||
+                (o.mpeInUnit !== undefined &&
+                  o.correctedErrorEc !== undefined &&
+                  Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+            );
+            if (hasAnyFail) {
+              item.status = 'COMPLETED';
+              item.compliance = 'FAIL';
+            } else if (
+              obs.length < 5 ||
+              obs.some((o) => o.compliance === 'NOT_EVALUATED' || o.indicatedValue === undefined)
+            ) {
+              item.status = 'IN_PROGRESS';
+              item.compliance = 'NOT_EVALUATED';
+            } else {
+              item.status = 'COMPLETED';
+              item.compliance = 'PASS';
+            }
           }
           break;
         }
@@ -68,15 +81,31 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           if (!series || series.length === 0) {
             item.status = 'PENDING';
             item.compliance = 'NOT_EVALUATED';
-          } else if (series.some((s) => s.compliance === 'FAIL')) {
-            item.status = 'COMPLETED';
-            item.compliance = 'FAIL';
-          } else if (series.some((s) => s.compliance === 'NOT_EVALUATED' || !s.readings || s.readings.length === 0)) {
-            item.status = 'IN_PROGRESS';
-            item.compliance = 'NOT_EVALUATED';
           } else {
-            item.status = 'COMPLETED';
-            item.compliance = 'PASS';
+            const hasAnyFail = series.some(
+              (s) =>
+                s.compliance === 'FAIL' ||
+                (s.mpeInUnit !== undefined &&
+                  s.deltaI !== undefined &&
+                  s.deltaI > s.mpeInUnit + 1e-9)
+            );
+            if (hasAnyFail) {
+              item.status = 'COMPLETED';
+              item.compliance = 'FAIL';
+            } else if (
+              series.some(
+                (s) =>
+                  s.compliance === 'NOT_EVALUATED' ||
+                  !s.readings ||
+                  s.readings.length < 3
+              )
+            ) {
+              item.status = 'IN_PROGRESS';
+              item.compliance = 'NOT_EVALUATED';
+            } else {
+              item.status = 'COMPLETED';
+              item.compliance = 'PASS';
+            }
           }
           break;
         }
@@ -86,15 +115,72 @@ export function evaluateOverallTestSessionCompliance(session: TestSession): {
           if (!ecc || ecc.length === 0) {
             item.status = 'PENDING';
             item.compliance = 'NOT_EVALUATED';
-          } else if (ecc.some((e) => e.compliance === 'FAIL')) {
-            item.status = 'COMPLETED';
-            item.compliance = 'FAIL';
-          } else if (ecc.some((e) => e.compliance === 'NOT_EVALUATED')) {
-            item.status = 'IN_PROGRESS';
-            item.compliance = 'NOT_EVALUATED';
           } else {
-            item.status = 'COMPLETED';
-            item.compliance = 'PASS';
+            const inst = session.instrumentSnapshot;
+            // Determine if any individual position fails according to OIML R 76-1:2006 Clause 3.6.2
+            const hasAnyFail = ecc.some((e) => {
+              if (e.compliance === 'FAIL') return true;
+              if (
+                e.mpeInUnit !== undefined &&
+                e.correctedErrorEc !== undefined &&
+                Math.abs(e.correctedErrorEc) > e.mpeInUnit + 1e-9
+              ) {
+                return true;
+              }
+              // If raw readings are present, calculate position error directly
+              if (
+                inst &&
+                e.nominalLoad !== undefined &&
+                e.indicatedValue !== undefined &&
+                inst.verificationScaleInterval
+              ) {
+                const calc = calculateEccentricityPosition({
+                  positionId: e.positionId ?? 1,
+                  positionName: e.positionName ?? 'Position',
+                  nominalLoadL: e.nominalLoad,
+                  indicatedValueI: e.indicatedValue,
+                  turningPointDeltaL: e.turningPointDeltaL,
+                  zeroErrorE0: session.zeroSettingObservation?.calculatedZeroErrorE0 || 0,
+                  verificationScaleIntervalE: inst.verificationScaleInterval,
+                  unit: inst.unit,
+                  accuracyClass: inst.accuracyClass,
+                  isServiceVerification: session.verificationType === 'SUBSEQUENT_IN_SERVICE',
+                });
+                return calc.compliance === 'FAIL';
+              }
+              return false;
+            });
+
+            if (hasAnyFail) {
+              item.status = 'COMPLETED';
+              item.compliance = 'FAIL';
+            } else {
+              // Check completion requirements per OIML R 76-1:2006 Clause 3.6.2
+              // Platforms require testing center + support corners (minimum 4 positions)
+              const minRequiredPositions = Math.max(
+                4,
+                inst?.numberOfSupportPoints && inst.numberOfSupportPoints <= 4
+                  ? 4
+                  : (inst?.numberOfSupportPoints || 4)
+              );
+
+              const isCompleted =
+                ecc.length >= minRequiredPositions &&
+                ecc.every(
+                  (e) =>
+                    e.compliance === 'PASS' &&
+                    e.indicatedValue !== undefined &&
+                    e.indicatedValue !== null
+                );
+
+              if (isCompleted) {
+                item.status = 'COMPLETED';
+                item.compliance = 'PASS';
+              } else {
+                item.status = 'IN_PROGRESS';
+                item.compliance = 'NOT_EVALUATED';
+              }
+            }
           }
           break;
         }

@@ -775,13 +775,80 @@ export class StorageService {
             entry.calculatedError = `Etare = ${eTare.toFixed(4)} ${inst.unit}`;
             entry.summaryResult = isPass ? 'PASS (Tare & Net compliant)' : 'FAIL';
           }
+        } else if (entry.category === 'ECCENTRICITY') {
+          if (session.eccentricityObservations && session.eccentricityObservations.length > 0) {
+            const hasFail = session.eccentricityObservations.some(
+              (o) =>
+                o.compliance === 'FAIL' ||
+                (o.mpeInUnit !== undefined &&
+                  o.correctedErrorEc !== undefined &&
+                  Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+            );
+            const minRequired = Math.max(
+              4,
+              inst?.numberOfSupportPoints && inst.numberOfSupportPoints <= 4
+                ? 4
+                : (inst?.numberOfSupportPoints || 4)
+            );
+            const isCompleted =
+              session.eccentricityObservations.length >= minRequired &&
+              session.eccentricityObservations.every(
+                (o) => o.compliance === 'PASS' && o.indicatedValue !== undefined
+              );
+
+            const isPass = !hasFail && isCompleted;
+            entry.compliance = hasFail ? 'FAIL' : isPass ? 'PASS' : 'NOT_EVALUATED';
+            entry.status = hasFail || isPass ? 'COMPLETED' : 'IN_PROGRESS';
+            const passCount = session.eccentricityObservations.filter((o) => o.compliance === 'PASS').length;
+            entry.summaryResult = `${passCount}/${session.eccentricityObservations.length} positions passed`;
+          }
+        } else if (entry.category === 'REPEATABILITY') {
+          if (session.repeatabilitySeries && session.repeatabilitySeries.length > 0) {
+            const hasFail = session.repeatabilitySeries.some(
+              (s) =>
+                s.compliance === 'FAIL' ||
+                (s.mpeInUnit !== undefined && s.deltaI !== undefined && s.deltaI > s.mpeInUnit + 1e-9)
+            );
+            const isCompleted = session.repeatabilitySeries.every((s) => s.readings && s.readings.length >= 3);
+            entry.compliance = hasFail
+              ? 'FAIL'
+              : isCompleted && session.repeatabilitySeries.every((s) => s.compliance === 'PASS')
+              ? 'PASS'
+              : 'NOT_EVALUATED';
+            entry.status = hasFail || entry.compliance === 'PASS' ? 'COMPLETED' : 'IN_PROGRESS';
+          }
+        } else if (entry.category === 'WEIGHING_ACCURACY') {
+          if (session.weighingObservations && session.weighingObservations.length > 0) {
+            const hasFail = session.weighingObservations.some(
+              (o) =>
+                o.compliance === 'FAIL' ||
+                (o.mpeInUnit !== undefined &&
+                  o.correctedErrorEc !== undefined &&
+                  Math.abs(o.correctedErrorEc) > o.mpeInUnit + 1e-9)
+            );
+            const isCompleted =
+              session.weighingObservations.length >= 5 &&
+              session.weighingObservations.every((o) => o.indicatedValue !== undefined);
+            entry.compliance = hasFail
+              ? 'FAIL'
+              : isCompleted && session.weighingObservations.every((o) => o.compliance === 'PASS')
+              ? 'PASS'
+              : 'NOT_EVALUATED';
+            entry.status = hasFail || entry.compliance === 'PASS' ? 'COMPLETED' : 'IN_PROGRESS';
+          }
         }
       });
 
       const applicable = report.complianceMatrix.filter((e) => e.isApplicable && e.status !== 'SKIPPED');
-      if (applicable.length > 0 && applicable.every((e) => e.compliance === 'PASS')) {
+      if (applicable.some((e) => e.compliance === 'FAIL')) {
+        report.overallCompliance = 'FAIL';
+        report.complianceStatement = 'NON-COMPLIANT (Tolerance limits exceeded under OIML R 76-1:2006)';
+      } else if (applicable.length > 0 && applicable.every((e) => e.compliance === 'PASS')) {
         report.overallCompliance = 'PASS';
         report.complianceStatement = 'COMPLIANT (OIML R 76-1:2006 Table 6 Limits Verified)';
+      } else {
+        report.overallCompliance = 'NOT_EVALUATED';
+        report.complianceStatement = 'INCOMPLETE (Not all applicable tests evaluated)';
       }
     }
     return report;

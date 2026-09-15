@@ -6,7 +6,7 @@ interface Props {
   session: TestSession;
   isReadOnly: boolean;
   onSave: (qc: AdditionalQCChecks) => void;
-  onWhyClick: () => void;
+  onWhyClick?: () => void;
   onBackToOverview: () => void;
 }
 
@@ -85,12 +85,15 @@ export const GuidedAdditionalQCChecksStep: React.FC<Props> = ({
             Visual, Mechanical & Electronics QC Inspection
           </h3>
         </div>
-        <button
-          onClick={onWhyClick}
-          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline"
-        >
-          <HelpCircle size={14} /> Why this check?
-        </button>
+        {onWhyClick && (
+          <button
+            type="button"
+            onClick={onWhyClick}
+            className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 hover:underline cursor-pointer"
+          >
+            <HelpCircle size={14} /> Why this check?
+          </button>
+        )}
       </div>
 
       <div className="p-6 space-y-6">
