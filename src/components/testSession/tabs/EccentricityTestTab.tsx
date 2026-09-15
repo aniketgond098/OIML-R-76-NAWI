@@ -120,60 +120,60 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
       </div>
 
       {/* Visual Platform Schematic & Position Map */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col items-center justify-center text-center">
-          <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="lg:col-span-1 bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-2xs flex flex-col items-center justify-center text-center">
+          <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-1.5">
             <LayoutGrid size={14} /> Platform Position Map
           </h5>
 
           {/* Scale Plate Visual Grid */}
-          <div className="w-48 h-48 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 p-2 relative shadow-inner">
+          <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 p-2 relative shadow-inner">
             {/* Center Pos 1 */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-indigo-100 border-2 border-indigo-600 flex items-center justify-center font-bold text-xs text-indigo-700 shadow-xs">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-indigo-100 border-2 border-indigo-600 flex items-center justify-center font-bold text-xs text-indigo-700 shadow-xs">
               1
             </div>
 
             {/* Corner Pos 2 (Top Left) */}
-            <div className="absolute top-3 left-3 w-9 h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
+            <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
               2
             </div>
 
             {/* Corner Pos 3 (Top Right) */}
-            <div className="absolute top-3 right-3 w-9 h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
+            <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
               3
             </div>
 
             {/* Corner Pos 4 (Bottom Right) */}
-            <div className="absolute bottom-3 right-3 w-9 h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
+            <div className="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
               4
             </div>
 
             {/* Corner Pos 5 (Bottom Left) */}
-            <div className="absolute bottom-3 left-3 w-9 h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
+            <div className="absolute bottom-2.5 left-2.5 sm:bottom-3 sm:left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-200 border border-slate-400 flex items-center justify-center font-bold text-xs text-slate-700">
               5
             </div>
           </div>
 
-          <p className="text-[11px] text-slate-500 mt-4 leading-tight">
+          <p className="text-[11px] text-slate-500 mt-3 sm:mt-4 leading-tight">
             Apply test load sequentially to Center (1), Front-Left (2), Front-Right (3), Rear-Right (4), Rear-Left (5).
           </p>
         </div>
 
         {/* Positions Table */}
-        <div className="md:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs min-w-[680px]">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+          <div className="overflow-x-auto scrollbar-thin">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
-                  <th className="p-3 pl-4">Pos #</th>
-                  <th className="p-3">Location</th>
-                  <th className="p-3">Applied Load</th>
-                  <th className="p-3">Indication ($I$)</th>
-                  <th className="p-3">$\Delta L$</th>
-                  <th className="p-3">Error ($E_c$)</th>
-                  <th className="p-3">MPE Limit</th>
-                  <th className="p-3">Result</th>
-                  <th className="p-3 pr-4 text-right">Proof</th>
+                <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px] whitespace-nowrap">
+                  <th className="py-2.5 px-3 pl-3.5">Pos #</th>
+                  <th className="py-2.5 px-3">Location</th>
+                  <th className="py-2.5 px-3">Applied Load</th>
+                  <th className="py-2.5 px-3">Indication ($I$)</th>
+                  <th className="py-2.5 px-3">$\Delta L$</th>
+                  <th className="py-2.5 px-3">Error ($E_c$)</th>
+                  <th className="py-2.5 px-3">MPE Limit</th>
+                  <th className="py-2.5 px-3">Result</th>
+                  <th className="py-2.5 px-3 pr-3.5 text-right">Proof</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-mono text-xs">
@@ -198,10 +198,10 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
                     }).explanation;
 
                     return (
-                      <tr key={obs.id || idx} className="hover:bg-slate-50">
-                        <td className="p-3 pl-4 font-sans font-bold text-indigo-700">#{obs.positionId}</td>
-                        <td className="p-3 font-sans text-slate-800 font-semibold">{obs.positionName}</td>
-                        <td className="p-3">
+                      <tr key={obs.id || idx} className="hover:bg-slate-50 whitespace-nowrap">
+                        <td className="py-2 px-3 pl-3.5 font-sans font-bold text-indigo-700">#{obs.positionId}</td>
+                        <td className="py-2 px-3 font-sans text-slate-800 font-semibold">{obs.positionName}</td>
+                        <td className="py-2 px-3">
                           {isReadOnly ? (
                             <span>{obs.nominalLoad} {inst.unit}</span>
                           ) : (
@@ -212,11 +212,11 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
                               onChange={(e) =>
                                 handleFieldChange(idx, 'nominalLoad', parseFloat(e.target.value) || 0)
                               }
-                              className="w-20 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                              className="w-18 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                             />
                           )}
                         </td>
-                        <td className="p-3">
+                        <td className="py-2 px-3">
                           {isReadOnly ? (
                             <span className="font-bold text-slate-900">{obs.indicatedValue} {inst.unit}</span>
                           ) : (
@@ -227,11 +227,11 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
                               onChange={(e) =>
                                 handleFieldChange(idx, 'indicatedValue', parseFloat(e.target.value) || 0)
                               }
-                              className="w-24 px-2 py-1 border border-slate-300 rounded font-mono text-xs font-bold"
+                              className="w-20 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs font-bold"
                             />
                           )}
                         </td>
-                        <td className="p-3">
+                        <td className="py-2 px-3">
                           {isReadOnly ? (
                             <span>{obs.turningPointDeltaL ?? '-'}</span>
                           ) : (
@@ -243,11 +243,11 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
                               onChange={(e) =>
                                 handleFieldChange(idx, 'turningPointDeltaL', parseFloat(e.target.value) || 0)
                               }
-                              className="w-20 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                              className="w-16 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                             />
                           )}
                         </td>
-                        <td className="p-3 font-bold">
+                        <td className="py-2 px-3 font-bold">
                           {obs.correctedErrorEc !== undefined ? (
                             <span className={obs.compliance === 'PASS' ? 'text-emerald-700' : 'text-rose-700'}>
                               {obs.correctedErrorEc > 0 ? `+${obs.correctedErrorEc.toFixed(4)}` : obs.correctedErrorEc.toFixed(4)} {inst.unit}
@@ -256,13 +256,13 @@ export const EccentricityTestTab: React.FC<Props> = ({ session, isReadOnly, onUp
                             '-'
                           )}
                         </td>
-                        <td className="p-3 text-slate-600">
+                        <td className="py-2 px-3 text-slate-600">
                           {obs.mpeInUnit !== undefined ? `±${obs.mpeInUnit.toFixed(4)} ${inst.unit}` : '-'}
                         </td>
-                        <td className="p-3">
+                        <td className="py-2 px-3">
                           <ComplianceBadge status={obs.compliance} size="sm" />
                         </td>
-                        <td className="p-3 pr-4 text-right">
+                        <td className="py-2 px-3 pr-3.5 text-right">
                           <button
                             onClick={() => setSelectedExplanation(explanation)}
                             className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors"

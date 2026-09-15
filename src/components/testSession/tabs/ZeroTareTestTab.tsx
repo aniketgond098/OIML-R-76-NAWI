@@ -188,9 +188,9 @@ export const ZeroTareTestTab: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+        <div className="p-3.5 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Zero Device Type
             </label>
             {isReadOnly ? (
@@ -199,7 +199,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
               <select
                 value={zeroObs.testType}
                 onChange={(e) => handleZeroFieldChange('testType', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-medium"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-medium"
               >
                 <option value="NON_AUTOMATIC_ZERO_SETTING">Non-Automatic Zero</option>
                 <option value="SEMI_AUTOMATIC_ZERO_SETTING">Semi-Automatic Zero</option>
@@ -210,7 +210,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Indication at Zero (I0)
             </label>
             {isReadOnly ? (
@@ -221,13 +221,13 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                 step="any"
                 value={zeroObs.zeroIndication}
                 onChange={(e) => handleZeroFieldChange('zeroIndication', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
               />
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Flash Weight (ΔL0)
             </label>
             {isReadOnly ? (
@@ -238,7 +238,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                 step="any"
                 value={zeroObs.turningPointDeltaL0}
                 onChange={(e) => handleZeroFieldChange('turningPointDeltaL0', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono"
+                className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
               />
             )}
           </div>
@@ -277,11 +277,11 @@ export const ZeroTareTestTab: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className="p-3.5 sm:p-5 space-y-5">
           {/* Tare Load Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Tare Load Applied (T)
               </label>
               {isReadOnly ? (
@@ -292,13 +292,13 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                   step="any"
                   value={tareObs.tareLoadApplied}
                   onChange={(e) => handleTareFieldChange('tareLoadApplied', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Indicated Tare (Itare)
               </label>
               {isReadOnly ? (
@@ -309,13 +309,13 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                   step="any"
                   value={tareObs.indicatedTare}
                   onChange={(e) => handleTareFieldChange('indicatedTare', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
                 />
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                 Flash Weight (ΔLtare)
               </label>
               {isReadOnly ? (
@@ -326,7 +326,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                   step="any"
                   value={tareObs.turningPointDeltaLTare}
                   onChange={(e) => handleTareFieldChange('turningPointDeltaLTare', parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono"
+                  className="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-mono"
                 />
               )}
             </div>
@@ -347,22 +347,22 @@ export const ZeroTareTestTab: React.FC<Props> = ({
             <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
               Net Load Verification Points
             </h5>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs min-w-[620px]">
+            <div className="overflow-x-auto scrollbar-thin">
+              <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
-                    <th className="p-2.5">Net Load</th>
-                    <th className="p-2.5">Indicated Net</th>
-                    <th className="p-2.5">ΔL</th>
-                    <th className="p-2.5">Corrected Error (Ec)</th>
-                    <th className="p-2.5">MPE Limit</th>
-                    <th className="p-2.5 pr-4 text-right">Compliance</th>
+                  <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold text-[11px] whitespace-nowrap">
+                    <th className="py-2.5 px-3 pl-3.5">Net Load</th>
+                    <th className="py-2.5 px-3">Indicated Net</th>
+                    <th className="py-2.5 px-3">ΔL</th>
+                    <th className="py-2.5 px-3">Corrected Error ($E_c$)</th>
+                    <th className="py-2.5 px-3">MPE Limit</th>
+                    <th className="py-2.5 px-3 pr-3.5 text-right">Compliance</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-mono text-xs">
                   {tareObs.netTestPoints.map((pt, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
-                      <td className="p-2.5">
+                    <tr key={idx} className="hover:bg-slate-50 whitespace-nowrap">
+                      <td className="py-2 px-3 pl-3.5">
                         {isReadOnly ? (
                           <span>{pt.nominalNetLoad} {inst.unit}</span>
                         ) : (
@@ -371,11 +371,11 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                             step="any"
                             value={pt.nominalNetLoad}
                             onChange={(e) => handleNetPointChange(idx, 'nominalNetLoad', parseFloat(e.target.value) || 0)}
-                            className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                            className="w-20 px-1.5 py-1 border border-slate-300 rounded text-xs font-mono"
                           />
                         )}
                       </td>
-                      <td className="p-2.5">
+                      <td className="py-2 px-3">
                         {isReadOnly ? (
                           <span>{pt.indicatedNet} {inst.unit}</span>
                         ) : (
@@ -384,11 +384,11 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                             step="any"
                             value={pt.indicatedNet}
                             onChange={(e) => handleNetPointChange(idx, 'indicatedNet', parseFloat(e.target.value) || 0)}
-                            className="w-24 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                            className="w-20 px-1.5 py-1 border border-slate-300 rounded text-xs font-mono"
                           />
                         )}
                       </td>
-                      <td className="p-2.5">
+                      <td className="py-2 px-3">
                         {isReadOnly ? (
                           <span>{pt.turningPointDeltaL ?? '-'}</span>
                         ) : (
@@ -397,17 +397,17 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                             step="any"
                             value={pt.turningPointDeltaL ?? ''}
                             onChange={(e) => handleNetPointChange(idx, 'turningPointDeltaL', parseFloat(e.target.value) || 0)}
-                            className="w-20 px-2 py-1 border border-slate-300 rounded text-xs font-mono"
+                            className="w-18 px-1.5 py-1 border border-slate-300 rounded text-xs font-mono"
                           />
                         )}
                       </td>
-                      <td className="p-2.5 font-bold">
+                      <td className="py-2 px-3 font-bold">
                         {pt.correctedNetErrorEc !== undefined ? `${pt.correctedNetErrorEc.toFixed(4)} ${inst.unit}` : '-'}
                       </td>
-                      <td className="p-2.5 text-slate-600">
+                      <td className="py-2 px-3 text-slate-600">
                         {pt.mpeInUnit !== undefined ? `±${pt.mpeInUnit.toFixed(4)} ${inst.unit}` : '-'}
                       </td>
-                      <td className="p-2.5 pr-4 text-right">
+                      <td className="py-2 px-3 pr-3.5 text-right">
                         <ComplianceBadge status={pt.compliance} size="sm" />
                       </td>
                     </tr>

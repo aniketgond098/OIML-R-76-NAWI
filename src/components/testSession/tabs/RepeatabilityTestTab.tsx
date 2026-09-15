@@ -232,24 +232,24 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                 </div>
 
                 {/* Readings Table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs min-w-[580px]">
+                <div className="overflow-x-auto scrollbar-thin">
+                  <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-slate-100/50 border-b border-slate-200 text-slate-600 font-bold text-[11px]">
-                        <th className="p-2.5 pl-4">Run #</th>
-                        <th className="p-2.5">Zero Indication Before</th>
-                        <th className="p-2.5">Indicated Value ($I_n$)</th>
-                        <th className="p-2.5">Turning Point ($\Delta L$)</th>
-                        <th className="p-2.5 pr-4 text-right">Actions</th>
+                      <tr className="bg-slate-100/50 border-b border-slate-200 text-slate-600 font-bold text-[11px] whitespace-nowrap">
+                        <th className="py-2.5 px-3 pl-3.5">Run #</th>
+                        <th className="py-2.5 px-3">Zero Indication Before</th>
+                        <th className="py-2.5 px-3">Indicated Value ($I_n$)</th>
+                        <th className="py-2.5 px-3">Turning Point ($\Delta L$)</th>
+                        <th className="py-2.5 px-3 pr-3.5 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 font-mono text-xs">
                       {series.readings.map((reading, rIdx) => (
-                        <tr key={rIdx} className="hover:bg-slate-50">
-                          <td className="p-2.5 pl-4 font-sans font-semibold text-slate-600">
+                        <tr key={rIdx} className="hover:bg-slate-50 whitespace-nowrap">
+                          <td className="py-2 px-3 pl-3.5 font-sans font-semibold text-slate-600">
                             Run #{reading.runIndex}
                           </td>
-                          <td className="p-2.5">
+                          <td className="py-2 px-3">
                             {isReadOnly ? (
                               <span>{reading.zeroIndication} {inst.unit}</span>
                             ) : (
@@ -260,11 +260,11 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                                 onChange={(e) =>
                                   handleReadingChange(sIdx, rIdx, 'zeroIndication', parseFloat(e.target.value) || 0)
                                 }
-                                className="w-24 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                                className="w-20 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                               />
                             )}
                           </td>
-                          <td className="p-2.5">
+                          <td className="py-2 px-3">
                             {isReadOnly ? (
                               <span className="font-bold text-slate-800">{reading.indicatedValue} {inst.unit}</span>
                             ) : (
@@ -275,11 +275,11 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                                 onChange={(e) =>
                                   handleReadingChange(sIdx, rIdx, 'indicatedValue', parseFloat(e.target.value) || 0)
                                 }
-                                className="w-28 px-2 py-1 border border-slate-300 rounded font-mono text-xs font-bold"
+                                className="w-22 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs font-bold"
                               />
                             )}
                           </td>
-                          <td className="p-2.5">
+                          <td className="py-2 px-3">
                             {isReadOnly ? (
                               <span>{reading.turningPointDeltaL ?? '-'}</span>
                             ) : (
@@ -291,11 +291,11 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                                 onChange={(e) =>
                                   handleReadingChange(sIdx, rIdx, 'turningPointDeltaL', parseFloat(e.target.value) || 0)
                                 }
-                                className="w-24 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                                className="w-18 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                               />
                             )}
                           </td>
-                          <td className="p-2.5 pr-4 text-right">
+                          <td className="py-2 px-3 pr-3.5 text-right">
                             {!isReadOnly && series.readings.length > 1 && (
                               <button
                                 onClick={() => handleRemoveReading(sIdx, rIdx)}

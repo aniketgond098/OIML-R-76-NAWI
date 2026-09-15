@@ -82,14 +82,14 @@ export const StandardsRuleView: React.FC = () => {
           href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="p-3 bg-gradient-to-br from-indigo-50/70 to-slate-50 border border-indigo-100 hover:border-indigo-300 rounded-xl transition-all group flex items-start justify-between"
+          className="p-3.5 bg-slate-50 hover:bg-slate-100/90 border border-slate-200 hover:border-slate-300 rounded-xl transition-all group flex items-start justify-between"
         >
           <div className="space-y-0.5">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Governing Standard</span>
+            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">Governing Standard</span>
             <h4 className="text-xs font-bold text-slate-900 group-hover:text-indigo-700">OIML R 76-1:2006 (E)</h4>
             <p className="text-[11px] text-slate-500">Metrological & Technical Requirements — Tests</p>
           </div>
-          <ExternalLink size={14} className="text-indigo-400 group-hover:text-indigo-600 shrink-0 mt-0.5" />
+          <ExternalLink size={14} className="text-slate-400 group-hover:text-indigo-600 shrink-0 mt-0.5" />
         </a>
 
         <a
@@ -153,7 +153,7 @@ export const StandardsRuleView: React.FC = () => {
                 key={rule.ruleId}
                 onClick={() => setSelectedRule(rule)}
                 className={`w-full text-left p-4 transition-colors flex items-start justify-between gap-3 ${
-                  isSelected ? 'bg-indigo-50/80 border-l-4 border-indigo-600' : 'hover:bg-slate-50'
+                  isSelected ? 'bg-indigo-50/70 text-indigo-950 font-medium' : 'hover:bg-slate-50'
                 }`}
               >
                 <div className="space-y-1">

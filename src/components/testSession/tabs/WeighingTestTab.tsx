@@ -302,20 +302,20 @@ export const WeighingTestTab: React.FC<Props> = ({
 
       {/* Observations Table */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs min-w-[760px]">
+        <div className="overflow-x-auto scrollbar-thin">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
-                <th className="p-3 pl-4">#</th>
-                <th className="p-3">Direction</th>
-                <th className="p-3">Nominal Load ($L$)</th>
-                <th className="p-3">Indication ($I$)</th>
-                <th className="p-3">Flash Weight ($\Delta L$)</th>
-                <th className="p-3">True Indic. ($P$)</th>
-                <th className="p-3">Error ($E_c$)</th>
-                <th className="p-3">MPE Limit</th>
-                <th className="p-3">Result</th>
-                <th className="p-3 pr-4 text-right">Proof</th>
+              <tr className="bg-slate-100/80 border-b border-slate-200 text-slate-700 font-bold text-[11px] whitespace-nowrap">
+                <th className="py-2.5 px-3 pl-3.5">#</th>
+                <th className="py-2.5 px-3">Direction</th>
+                <th className="py-2.5 px-3">Nominal Load ($L$)</th>
+                <th className="py-2.5 px-3">Indication ($I$)</th>
+                <th className="py-2.5 px-3">Flash ($\Delta L$)</th>
+                <th className="py-2.5 px-3">True Indic. ($P$)</th>
+                <th className="py-2.5 px-3">Error ($E_c$)</th>
+                <th className="py-2.5 px-3">MPE Limit</th>
+                <th className="py-2.5 px-3">Result</th>
+                <th className="py-2.5 px-3 pr-3.5 text-right">Proof</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-mono text-xs">
@@ -338,10 +338,10 @@ export const WeighingTestTab: React.FC<Props> = ({
                   }).explanation;
 
                   return (
-                    <tr key={obs.id || idx} className="hover:bg-slate-50">
-                      <td className="p-3 pl-4 text-slate-500 font-sans">{obs.testPointIndex}</td>
+                    <tr key={obs.id || idx} className="hover:bg-slate-50 whitespace-nowrap">
+                      <td className="py-2 px-3 pl-3.5 text-slate-500 font-sans">{obs.testPointIndex}</td>
 
-                      <td className="p-3 font-sans">
+                      <td className="py-2 px-3 font-sans">
                         {isReadOnly ? (
                           <span className="font-semibold text-slate-700">
                             {obs.direction === 'ASCENDING' ? '↑ Asc' : '↓ Desc'}
@@ -350,15 +350,15 @@ export const WeighingTestTab: React.FC<Props> = ({
                           <select
                             value={obs.direction}
                             onChange={(e) => handleFieldChange(idx, 'direction', e.target.value)}
-                            className="px-2 py-1 border border-slate-300 rounded text-xs font-semibold"
+                            className="px-1.5 py-1 border border-slate-300 rounded text-xs font-semibold"
                           >
-                            <option value="ASCENDING">↑ Ascending</option>
-                            <option value="DESCENDING">↓ Descending</option>
+                            <option value="ASCENDING">↑ Asc</option>
+                            <option value="DESCENDING">↓ Desc</option>
                           </select>
                         )}
                       </td>
 
-                      <td className="p-3">
+                      <td className="py-2 px-3">
                         {isReadOnly ? (
                           <span className="font-bold text-slate-900">{obs.nominalLoad} {inst.unit}</span>
                         ) : (
@@ -368,14 +368,14 @@ export const WeighingTestTab: React.FC<Props> = ({
                               step="any"
                               value={obs.nominalLoad}
                               onChange={(e) => handleFieldChange(idx, 'nominalLoad', parseFloat(e.target.value) || 0)}
-                              className="w-24 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                              className="w-20 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                             />
                             <span className="text-slate-400 font-sans">{inst.unit}</span>
                           </div>
                         )}
                       </td>
 
-                      <td className="p-3">
+                      <td className="py-2 px-3">
                         {isReadOnly ? (
                           <span className="text-slate-800">{obs.indicatedValue} {inst.unit}</span>
                         ) : (
@@ -385,14 +385,14 @@ export const WeighingTestTab: React.FC<Props> = ({
                               step="any"
                               value={obs.indicatedValue}
                               onChange={(e) => handleFieldChange(idx, 'indicatedValue', parseFloat(e.target.value) || 0)}
-                              className="w-24 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                              className="w-20 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                             />
                             <span className="text-slate-400 font-sans">{inst.unit}</span>
                           </div>
                         )}
                       </td>
 
-                      <td className="p-3">
+                      <td className="py-2 px-3">
                         {isReadOnly ? (
                           <span className="text-slate-600">{obs.turningPointDeltaL ?? '-'}</span>
                         ) : (
@@ -408,16 +408,16 @@ export const WeighingTestTab: React.FC<Props> = ({
                                 e.target.value === '' ? undefined : parseFloat(e.target.value)
                               )
                             }
-                            className="w-20 px-2 py-1 border border-slate-300 rounded font-mono text-xs"
+                            className="w-16 px-1.5 py-1 border border-slate-300 rounded font-mono text-xs"
                           />
                         )}
                       </td>
 
-                      <td className="p-3 text-slate-700">
+                      <td className="py-2 px-3 text-slate-700">
                         {obs.calculatedIndicationP !== undefined ? obs.calculatedIndicationP.toFixed(4) : '-'}
                       </td>
 
-                      <td className="p-3 font-bold">
+                      <td className="py-2 px-3 font-bold">
                         {obs.correctedErrorEc !== undefined ? (
                           <span className={obs.compliance === 'PASS' ? 'text-emerald-700' : 'text-rose-700'}>
                             {obs.correctedErrorEc > 0 ? `+${obs.correctedErrorEc.toFixed(4)}` : obs.correctedErrorEc.toFixed(4)} {inst.unit}
@@ -427,15 +427,15 @@ export const WeighingTestTab: React.FC<Props> = ({
                         )}
                       </td>
 
-                      <td className="p-3 text-slate-600">
+                      <td className="py-2 px-3 text-slate-600">
                         {obs.mpeInUnit !== undefined ? `±${obs.mpeInUnit.toFixed(4)} ${inst.unit}` : `±${obs.mpeE}e`}
                       </td>
 
-                      <td className="p-3">
+                      <td className="py-2 px-3">
                         <ComplianceBadge status={obs.compliance} size="sm" />
                       </td>
 
-                      <td className="p-3 pr-4 text-right space-x-1 font-sans">
+                      <td className="py-2 px-3 pr-3.5 text-right space-x-1 font-sans">
                         <button
                           onClick={() => setSelectedExplanation(explanation)}
                           className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors"

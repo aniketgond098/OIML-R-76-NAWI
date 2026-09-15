@@ -92,11 +92,11 @@ export const TestSessionList: React.FC<Props> = ({
         const lastCompleted = completedItems[completedItems.length - 1];
 
         return (
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl shadow-md border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in">
+          <div className="p-4 sm:p-5 bg-slate-900 text-white rounded-xl shadow-xs border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">
                   Test Session In Progress
                 </span>
                 <span className="text-slate-400 font-mono text-xs">• {activeSession.testSessionNumber}</span>
@@ -122,7 +122,7 @@ export const TestSessionList: React.FC<Props> = ({
             </div>
             <button
               onClick={() => onSelectTestSession(activeSession.id)}
-              className="px-5 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center justify-center gap-2 shrink-0 self-start sm:self-auto"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-xs transition-colors flex items-center justify-center gap-2 shrink-0 self-start sm:self-auto"
             >
               <Play size={14} className="fill-white" />
               <span>Continue Testing</span>

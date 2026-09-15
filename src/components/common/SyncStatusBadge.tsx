@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { storageService } from '../../services/storage/storageService';
 import { StorageStatusState } from '../../types/storage';
 import { SUPABASE_SCHEMA_SQL, SUPABASE_FIX_PERMISSIONS_SQL } from '../../services/storage/schemaSql';
@@ -25,6 +25,7 @@ export const SyncStatusBadge: React.FC = () => {
   const [copiedSchema, setCopiedSchema] = useState(false);
   const [copiedPermissions, setCopiedPermissions] = useState(false);
   const [showSqlViewer, setShowSqlViewer] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribe = storageService.subscribeSyncStatus((newStatus) => {
@@ -32,6 +33,40 @@ export const SyncStatusBadge: React.FC = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  // Handle click outside and Escape key to close popover
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      // Check if clicked element is inside container or inside popover
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    }, 10);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   const handleManualSync = async () => {
     setIsRetrying(true);
@@ -141,37 +176,56 @@ export const SyncStatusBadge: React.FC = () => {
   const Icon = badge.icon;
 
   return (
-    <div className="relative">
+    <div ref={containerRef} className="relative">
       <button
         id="sync-status-badge-btn"
         onClick={() => setIsOpen(!isOpen)}
         title="View local & cloud storage status"
-        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all shadow-2xs ${badge.bg}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:py-1 rounded-lg border text-xs font-semibold transition-all shadow-2xs ${badge.bg}`}
       >
         <span className={`w-2 h-2 rounded-full ${badge.dot} ${badge.pulse ? 'animate-ping' : ''}`} />
         <Icon size={13} className={badge.pulse ? 'animate-spin' : ''} />
         <span className="hidden sm:inline">{badge.text}</span>
-        <span className="sm:hidden">{status.isOnline ? 'Online' : 'Offline'}</span>
-        <ChevronDown size={11} className="opacity-60" />
+        <span className="sm:hidden font-medium">
+          {status.isOnline
+            ? status.pendingCount > 0
+              ? `${status.pendingCount} sync`
+              : 'Synced'
+            : 'Offline'}
+        </span>
+        <ChevronDown size={11} className={`opacity-60 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
-        <div
-          id="sync-status-popover"
-          className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-3 max-h-[85vh] overflow-y-auto"
-        >
-          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-1.5">
-              <Database size={16} className="text-indigo-600" />
-              <h4 className="text-xs font-bold text-slate-900">Hybrid Storage Architecture</h4>
+        <>
+          {/* Mobile & Tablet backdrop for easy touch dismissal */}
+          <div
+            className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-2xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
+            aria-hidden="true"
+          />
+
+          <div
+            id="sync-status-popover"
+            className="fixed inset-x-2.5 top-16 sm:inset-x-auto sm:right-3 md:right-6 sm:top-16 sm:w-[380px] md:w-[410px] max-w-[calc(100vw-20px)] sm:max-w-none bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-3 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-1.5">
+                <Database size={16} className="text-indigo-600" />
+                <h4 className="text-xs font-bold text-slate-900">Hybrid Storage Architecture</h4>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-slate-400 hover:text-slate-700 active:text-slate-900 p-1.5 -mr-1 rounded-lg hover:bg-slate-100 transition-colors"
+                aria-label="Close sync status"
+              >
+                <X size={16} />
+              </button>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
-            >
-              <X size={15} />
-            </button>
-          </div>
 
           {/* Layer 1: IndexedDB */}
           <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg space-y-1">
@@ -284,7 +338,7 @@ export const SyncStatusBadge: React.FC = () => {
 
               {showSqlViewer && (
                 <div className="mt-2">
-                  <div className="max-h-36 overflow-y-auto bg-slate-900 text-slate-200 text-[10px] font-mono p-2.5 rounded-lg border border-slate-700 leading-tight">
+                  <div className="max-h-36 overflow-y-auto overflow-x-auto bg-slate-900 text-slate-200 text-[10px] font-mono p-2.5 rounded-lg border border-slate-700 leading-tight">
                     <pre className="whitespace-pre">{SUPABASE_FIX_PERMISSIONS_SQL}</pre>
                   </div>
                 </div>
@@ -340,7 +394,7 @@ export const SyncStatusBadge: React.FC = () => {
 
               {showSqlViewer && (
                 <div className="mt-2">
-                  <div className="max-h-36 overflow-y-auto bg-slate-900 text-slate-200 text-[10px] font-mono p-2.5 rounded-lg border border-slate-700 leading-tight">
+                  <div className="max-h-36 overflow-y-auto overflow-x-auto bg-slate-900 text-slate-200 text-[10px] font-mono p-2.5 rounded-lg border border-slate-700 leading-tight">
                     <pre className="whitespace-pre">{SUPABASE_SCHEMA_SQL.slice(0, 800)}...</pre>
                   </div>
                   <p className="text-[10px] text-slate-500 mt-1">Full script available in <code>/supabase/schema.sql</code></p>
@@ -373,8 +427,9 @@ export const SyncStatusBadge: React.FC = () => {
             </p>
           )}
         </div>
-      )}
-    </div>
+      </>
+    )}
+  </div>
   );
 };
 

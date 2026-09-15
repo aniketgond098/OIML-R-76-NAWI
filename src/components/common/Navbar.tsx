@@ -29,7 +29,7 @@ export const Navbar: React.FC<Props> = ({
   isMobileSidebarOpen = false,
   onToggleMobileSidebar,
 }) => {
-  const { currentUser, availableUsers, switchUser, switchRole } = useAuth();
+  const { currentUser, switchRole } = useAuth();
   const lab = db.getLaboratory('LAB-IND-001');
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -112,25 +112,6 @@ export const Navbar: React.FC<Props> = ({
           <ExternalLink size={11} className="text-slate-400" />
         </a>
 
-        {/* Quick Role Tester Pills (Desktop/Large screen only) */}
-        <div className="hidden xl:flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-          <span className="text-[11px] font-semibold text-slate-400 px-2">Role:</span>
-          {(['LAB_TECHNICIAN', 'REVIEWER_OFFICER', 'ADMIN'] as UserRole[]).map((r) => (
-            <button
-              key={r}
-              id={`quick-role-${r.toLowerCase()}`}
-              onClick={() => switchRole(r)}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                currentUser.role === r
-                  ? 'bg-white text-slate-900 shadow-xs border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {roleLabels[r]}
-            </button>
-          ))}
-        </div>
-
         {/* User Account Dropdown */}
         <div className="relative">
           <button
@@ -171,21 +152,24 @@ export const Navbar: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Mobile Quick Role Switcher */}
-              <div className="xl:hidden px-3 py-2 border-b border-slate-100 bg-slate-50/60">
+              {/* Consolidated Role Switcher in dropdown */}
+              <div className="px-3 py-2 border-b border-slate-100 bg-slate-50/60">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
-                  Quick Switch Role
+                  Select Active Role
                 </span>
                 <div className="grid grid-cols-1 gap-1">
                   {(['LAB_TECHNICIAN', 'REVIEWER_OFFICER', 'ADMIN'] as UserRole[]).map((r) => (
                     <button
                       key={r}
+                      id={`switch-role-${r.toLowerCase()}`}
                       onClick={() => {
                         switchRole(r);
                         setShowUserMenu(false);
                       }}
-                      className={`text-left px-2 py-1 rounded text-xs font-medium flex items-center justify-between ${
-                        currentUser.role === r ? 'bg-indigo-100 text-indigo-900 font-semibold' : 'text-slate-600 hover:bg-slate-100'
+                      className={`text-left px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors ${
+                        currentUser.role === r
+                          ? 'bg-indigo-50 text-indigo-900 font-semibold border border-indigo-200/80'
+                          : 'text-slate-700 hover:bg-slate-100'
                       }`}
                     >
                       <span>{roleLabels[r]}</span>
@@ -193,33 +177,6 @@ export const Navbar: React.FC<Props> = ({
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div className="px-2 py-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 block mb-1">
-                  Switch Active Lab User
-                </span>
-                {availableUsers.map((u) => (
-                  <button
-                    key={u.id}
-                    id={`switch-user-${u.id}`}
-                    onClick={() => {
-                      switchUser(u.id);
-                      setShowUserMenu(false);
-                    }}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between transition-colors ${
-                      currentUser.id === u.id
-                        ? 'bg-indigo-50 text-indigo-900 font-semibold'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div>
-                      <div className="font-medium">{u.fullName}</div>
-                      <div className="text-[10px] text-slate-400">{roleLabels[u.role]}</div>
-                    </div>
-                    {currentUser.id === u.id && <CheckCircle2 size={14} className="text-indigo-600" />}
-                  </button>
-                ))}
               </div>
 
               {/* User Menu Actions */}

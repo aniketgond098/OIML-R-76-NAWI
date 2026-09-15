@@ -9,6 +9,7 @@ import { RepeatabilityTestTab } from './tabs/RepeatabilityTestTab';
 import { EccentricityTestTab } from './tabs/EccentricityTestTab';
 import { ZeroTareTestTab } from './tabs/ZeroTareTestTab';
 import { EnvironmentalTestTab } from './tabs/EnvironmentalTestTab';
+import { ReviewTab } from './tabs/ReviewTab';
 import { SmartSequencingPanel } from './SmartSequencingPanel';
 import { GuidedTestContainer } from './guided/GuidedTestContainer';
 import { testSequencingEngine } from '../../metrology/sequencing/testSequencingEngine';
@@ -112,13 +113,13 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
   };
 
   // Reviewer Approve & Seal Report
-  const handleApproveAndGenerateReport = async () => {
+  const handleApproveAndGenerateReport = async (comments?: string) => {
     setIsFinalizing(true);
     try {
       const report = await db.finalizeAndGenerateReport(
         session.id,
         currentUser,
-        'Full Metrological Verification Approved. All errors within Table 6 limits.'
+        comments || 'Full Metrological Verification Approved. All errors within Table 6 limits.'
       );
       onViewReport(report.id);
     } catch (e) {
@@ -126,6 +127,13 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
     } finally {
       setIsFinalizing(false);
     }
+  };
+
+  const handleRejectSession = (comments: string) => {
+    saveUpdatedSession({
+      status: 'DRAFT',
+      reviewerComments: comments,
+    });
   };
 
   // Check existing report if any
@@ -155,23 +163,23 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
   };
 
   return (
-    <div id="test-session-workflow" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
+    <div id="test-session-workflow" className="p-3 sm:p-4 md:p-5 lg:p-6 space-y-3.5 sm:space-y-5 max-w-7xl mx-auto w-full min-w-0">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold shrink-0"
           >
             <ArrowLeft size={16} /> Back to Sessions
           </button>
 
           {/* Guided Mode vs Expert Mode Switcher */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
             <button
               id="btn-mode-guided"
               onClick={() => setViewMode('guided')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'guided'
                   ? 'bg-white text-slate-900 shadow-2xs font-bold'
                   : 'text-slate-600 hover:text-slate-900'
@@ -183,7 +191,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             <button
               id="btn-mode-expert"
               onClick={() => setViewMode('expert')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
                 viewMode === 'expert'
                   ? 'bg-white text-slate-900 shadow-2xs font-bold'
                   : 'text-slate-600 hover:text-slate-900'
@@ -207,7 +215,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             <button
               id="btn-submit-for-review"
               onClick={handleSubmitForReview}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
             >
               <Send size={14} />
               Submit For Review
@@ -219,7 +227,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
               id="btn-approve-and-seal"
               onClick={handleApproveAndGenerateReport}
               disabled={isFinalizing}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors disabled:opacity-50 w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors disabled:opacity-50 w-full sm:w-auto"
             >
               <FileCheck size={15} />
               {isFinalizing ? 'Sealing Report...' : 'Approve & Seal Official Report'}
@@ -230,7 +238,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             <button
               id="btn-view-generated-report"
               onClick={() => onViewReport(matchedReport.id)}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors w-full sm:w-auto"
             >
               <FileCheck size={15} />
               View Sealed Report
@@ -250,25 +258,25 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
       ) : (
         <>
           {/* Session Metadata Banner */}
-          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="min-w-0">
+          <div className="bg-white p-3.5 sm:p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <span className="font-mono text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded shrink-0">
                 {session.testSessionNumber}
               </span>
-              <h2 className="text-base font-bold text-slate-900 truncate">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate">
                 {inst.manufacturer} {inst.model}
               </h2>
               <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">
                 Class {inst.accuracyClass.replace('CLASS_', '')}
               </span>
             </div>
-            <div className="text-xs text-slate-500 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="text-xs text-slate-500 mt-2 flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-1">
               <span>Serial No: <strong className="text-slate-800 font-mono">{inst.serialNumber}</strong></span>
-              <span className="hidden sm:inline">•</span>
+              <span className="text-slate-300">•</span>
               <span>Standard: <strong className="text-slate-800 font-mono">{session.standardEdition}</strong></span>
-              <span className="hidden sm:inline">•</span>
+              <span className="text-slate-300">•</span>
               <span className="inline-flex items-center gap-1">
                 <span>Technician:</span>
                 {!isReadOnly ? (
@@ -295,16 +303,16 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 justify-between sm:justify-end">
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 pt-2.5 lg:pt-0 border-t lg:border-t-0 border-slate-100 justify-between sm:justify-end">
             <div className="text-left sm:text-right">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Session State</span>
               <StatusBadge status={session.status} size="md" />
             </div>
-            <div className="text-right pl-3 border-l border-slate-200">
+            <div className="text-right pl-2.5 sm:pl-3 border-l border-slate-200">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Compliance</span>
               <ComplianceBadge status={session.overallCompliance} size="md" />
             </div>
-            <div className="text-right pl-3 border-l border-slate-200 hidden sm:block">
+            <div className="text-right pl-2.5 sm:pl-3 border-l border-slate-200 hidden sm:block">
               <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Storage Safety</span>
               <SessionSyncBadge sessionId={session.id} />
             </div>
@@ -312,7 +320,7 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="flex items-center gap-1 border-t border-slate-100 pt-3 overflow-x-auto pb-1">
+        <div className="flex items-center gap-1 border-t border-slate-100 pt-2.5 overflow-x-auto pb-1 scrollbar-thin">
           {[
             { id: 'sequencing', label: 'Smart Test Plan', icon: ListChecks },
             { id: 'weighing', label: '1. Weighing Performance', icon: Scale, count: session.weighingObservations?.length || 0 },
@@ -469,57 +477,16 @@ export const TestSessionWorkflow: React.FC<Props> = ({ sessionId, onBack, onView
         )}
 
         {activeWorkflowTab === 'review' && (
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Legal Metrology Compliance Determination</h3>
-                <p className="text-xs text-slate-500">
-                  Automated 3-state evaluation under OIML R 76-1:2006
-                </p>
-              </div>
-              <ComplianceBadge status={session.overallCompliance} size="lg" />
-            </div>
-
-            {/* Test Plan & Compliance Checklist */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                <ListChecks size={15} className="text-indigo-600" />
-                Prescribed Verification Plan Matrix
-              </h4>
-
-              <div className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden text-xs">
-                {session.testPlan.map((planItem, idx) => (
-                  <div key={idx} className="p-3.5 flex items-center justify-between bg-white hover:bg-slate-50">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900">{planItem.name}</span>
-                        {planItem.isMandatory && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">
-                            MANDATORY
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-slate-500 font-mono">{planItem.clauseRef}</span>
-                      {planItem.reasonForInapplicability && (
-                        <p className="text-[11px] text-slate-400 italic">{planItem.reasonForInapplicability}</p>
-                      )}
-                    </div>
-                    <ComplianceBadge status={planItem.compliance} size="sm" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Summary Notes */}
-            {session.complianceSummary && (
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
-                <span className="font-bold text-slate-800 block">Metrology Officer Assessment:</span>
-                <p className="text-slate-600">
-                  {session.complianceSummary.summaryNotes || 'All test modules evaluated against OIML Table 6 limits.'}
-                </p>
-              </div>
-            )}
-          </div>
+          <ReviewTab
+            session={session}
+            isReadOnly={isReadOnly}
+            canApprove={canApproveTest}
+            onApprove={handleApproveAndGenerateReport}
+            onReject={handleRejectSession}
+            onSaveNotes={(notes) => saveUpdatedSession({ reviewerComments: notes })}
+            onViewReport={onViewReport}
+            matchedReport={matchedReport}
+          />
         )}
       </div>
     </>
