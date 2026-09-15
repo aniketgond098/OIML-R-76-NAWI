@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { calculateWeighingError, getMPEInE } from '../../metrology/calculations/weighing';
 import { calculateRepeatability } from '../../metrology/calculations/repeatability';
 import { calculateEccentricityPosition, getRecommendedEccentricityLoad } from '../../metrology/calculations/eccentricity';
@@ -187,6 +187,10 @@ export const MetrologyVerificationSuite: React.FC = () => {
     setResults(testResults);
     setIsRunning(false);
   };
+
+  useEffect(() => {
+    runAllVerificationTests();
+  }, []);
 
   return (
     <div id="metrology-qa-suite" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">

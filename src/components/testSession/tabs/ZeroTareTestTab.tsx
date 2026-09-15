@@ -354,7 +354,7 @@ export const ZeroTareTestTab: React.FC<Props> = ({
                     <th className="py-2.5 px-3 pl-3.5">Net Load</th>
                     <th className="py-2.5 px-3">Indicated Net</th>
                     <th className="py-2.5 px-3">ΔL</th>
-                    <th className="py-2.5 px-3">Corrected Error ($E_c$)</th>
+                    <th className="py-2.5 px-3">Corrected Error (Ec)</th>
                     <th className="py-2.5 px-3">MPE Limit</th>
                     <th className="py-2.5 px-3 pr-3.5 text-right">Compliance</th>
                   </tr>

@@ -6,6 +6,8 @@ interface WeighWiseLogoProps {
   theme?: 'default' | 'light' | 'monochrome';
   className?: string;
   showSubtitle?: boolean;
+  hideSubtitleOnMobile?: boolean;
+  hideSubtitleBelow?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const WeighWiseLogo: React.FC<WeighWiseLogoProps> = ({
@@ -14,6 +16,8 @@ export const WeighWiseLogo: React.FC<WeighWiseLogoProps> = ({
   theme = 'default',
   className = '',
   showSubtitle = true,
+  hideSubtitleOnMobile = false,
+  hideSubtitleBelow,
 }) => {
   // Resolve pixel sizes for emblem
   const getEmblemDimension = (): number => {
@@ -203,7 +207,17 @@ export const WeighWiseLogo: React.FC<WeighWiseLogoProps> = ({
         </div>
         {showSubtitle && (
           <span
-            className={`text-[9px] sm:text-[10px] font-bold tracking-[0.2em] uppercase font-sans mt-0.5 truncate leading-none ${textColorSecondary}`}
+            className={`text-[9px] sm:text-[10px] font-bold tracking-[0.2em] uppercase font-sans mt-0.5 truncate leading-none ${textColorSecondary} ${
+              hideSubtitleBelow === 'xl'
+                ? 'hidden xl:block'
+                : hideSubtitleBelow === 'lg'
+                ? 'hidden lg:block'
+                : hideSubtitleBelow === 'md'
+                ? 'hidden md:block'
+                : hideSubtitleBelow === 'sm' || hideSubtitleOnMobile
+                ? 'hidden sm:block'
+                : 'block'
+            }`}
           >
             METROLOGY COMPLIANCE
           </span>

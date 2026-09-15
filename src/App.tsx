@@ -196,6 +196,7 @@ function AppContent() {
           onTabChange={handleNavChange}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          onOpenScanModal={() => setIsQRScannerOpen(true)}
         />
 
         {/* Content Viewport */}

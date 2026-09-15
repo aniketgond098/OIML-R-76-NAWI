@@ -238,8 +238,8 @@ export const RepeatabilityTestTab: React.FC<Props> = ({ session, isReadOnly, onU
                       <tr className="bg-slate-100/50 border-b border-slate-200 text-slate-600 font-bold text-[11px] whitespace-nowrap">
                         <th className="py-2.5 px-3 pl-3.5">Run #</th>
                         <th className="py-2.5 px-3">Zero Indication Before</th>
-                        <th className="py-2.5 px-3">Indicated Value ($I_n$)</th>
-                        <th className="py-2.5 px-3">Turning Point ($\Delta L$)</th>
+                        <th className="py-2.5 px-3">Indicated Value (In)</th>
+                        <th className="py-2.5 px-3">Turning Point (ΔL)</th>
                         <th className="py-2.5 px-3 pr-3.5 text-right">Actions</th>
                       </tr>
                     </thead>

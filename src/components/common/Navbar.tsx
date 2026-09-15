@@ -51,60 +51,76 @@ export const Navbar: React.FC<Props> = ({
       className="w-full shrink-0 h-16 bg-white border-b border-slate-200/90 px-3 sm:px-6 flex items-center justify-between z-30 shadow-2xs"
     >
       {/* Brand & Metrology Title + Mobile Menu Toggle */}
-      <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+      <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1 overflow-hidden">
         {/* Mobile Hamburger Toggle Button */}
         {onToggleMobileSidebar && (
           <button
             id="mobile-nav-toggle-btn"
             onClick={onToggleMobileSidebar}
             aria-label={isMobileSidebarOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="md:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {isMobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         )}
 
-        <div className="flex items-center gap-3">
-          <WeighWiseLogo variant="horizontal" size="md" showSubtitle={true} />
-          <div className="hidden lg:block h-6 w-px bg-slate-200 ml-1" />
-          <p className="hidden lg:flex text-[11px] text-slate-500 items-center gap-1.5 truncate max-w-xs">
-            <ShieldCheck size={13} className="text-teal-600 shrink-0" />
-            <span className="truncate font-medium">{lab?.name}</span>
-          </p>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 overflow-hidden">
+          {/* Mobile view (< sm): Compact brand icon + name without sprawling subtitle */}
+          <div className="sm:hidden flex items-center gap-1.5 min-w-0">
+            <WeighWiseLogo variant="icon" size={28} />
+            <span className="font-black text-xs tracking-tight uppercase text-slate-900 font-sans truncate">
+              WeighWise
+            </span>
+          </div>
+
+          {/* Tablet & Desktop view (sm+): Horizontal logo, subtitle hidden below xl to guarantee ample breathing room */}
+          <div className="hidden sm:flex items-center gap-3 shrink-0">
+            <WeighWiseLogo
+              variant="horizontal"
+              size="md"
+              showSubtitle={true}
+              hideSubtitleBelow="xl"
+            />
+            <div className="hidden 2xl:block h-6 w-px bg-slate-200 ml-1" />
+            <p className="hidden 2xl:flex text-[11px] text-slate-500 items-center gap-1.5 truncate max-w-xs">
+              <ShieldCheck size={13} className="text-teal-600 shrink-0" />
+              <span className="truncate font-medium">{lab?.name}</span>
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Role Switcher, Official Rules Button & User Profile Controls */}
-      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* Cloud & Local Storage Sync Status Badge */}
-        <SyncStatusBadge />
-
+      <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         {/* Global QR Code Scanner Button */}
         {onOpenScanModal && (
           <button
             id="navbar-scan-qr-btn"
             onClick={onOpenScanModal}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 shadow-2xs transition-colors shrink-0"
             title="Scan physical QR code sticker to verify instrument"
           >
-            <QrCode size={14} className="text-indigo-600" />
-            <span className="hidden sm:inline">Scan QR</span>
+            <QrCode size={14} className="text-indigo-600 shrink-0" />
+            <span className="hidden xl:inline">Scan QR</span>
           </button>
         )}
 
-        {/* The Single Official OIML R-76 Rules Button */}
+        {/* The Single Official OIML R-76 Rules Button - displayed on large screens (xl+), available in dropdown & sidebar everywhere */}
         <a
           id="navbar-official-rules-btn"
           href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 active:bg-indigo-100 text-slate-700 hover:text-indigo-700 text-xs font-semibold border border-slate-200 hover:border-indigo-200 transition-all"
+          className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-indigo-50 active:bg-indigo-100 text-slate-700 hover:text-indigo-700 text-xs font-semibold border border-slate-200 hover:border-indigo-200 transition-all shrink-0"
           title="Open official OIML R 76-1:2006 (E) standard publication directly from OIML"
         >
-          <BookOpen size={14} className="text-indigo-600" />
-          <span className="hidden sm:inline">Official R-76 Rules</span>
-          <ExternalLink size={11} className="text-slate-400" />
+          <BookOpen size={14} className="text-indigo-600 shrink-0" />
+          <span>Official R-76 Rules</span>
+          <ExternalLink size={11} className="text-slate-400 shrink-0" />
         </a>
+
+        {/* Cloud & Local Storage Sync Status Badge */}
+        <SyncStatusBadge />
 
         {/* User Account Dropdown */}
         <div className="relative">
@@ -113,7 +129,7 @@ export const Navbar: React.FC<Props> = ({
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="flex items-center gap-1.5 sm:gap-2.5 p-1 sm:p-1.5 sm:pl-2.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
           >
-            <div className="text-left hidden md:block">
+            <div className="text-left hidden xl:block">
               <span className="text-xs font-bold text-slate-900 block leading-tight truncate max-w-[120px] lg:max-w-[140px]">
                 {currentUser.fullName}
               </span>
@@ -123,7 +139,7 @@ export const Navbar: React.FC<Props> = ({
                 {roleLabels[currentUser.role]}
               </span>
             </div>
-            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shrink-0 ring-2 ring-indigo-500/20">
               {currentUser.fullName.charAt(0)}
             </div>
             <ChevronDown size={14} className="text-slate-400 hidden sm:block" />
@@ -175,6 +191,33 @@ export const Navbar: React.FC<Props> = ({
 
               {/* User Menu Actions */}
               <div className="border-t border-slate-100 px-2 py-1.5 space-y-1">
+                {onOpenScanModal && (
+                  <button
+                    id="dropdown-scan-qr-btn"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      onOpenScanModal();
+                    }}
+                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-700 hover:bg-slate-100 font-medium"
+                  >
+                    <QrCode size={13} className="text-indigo-600" />
+                    <span>Scan Instrument QR</span>
+                  </button>
+                )}
+                <a
+                  id="dropdown-official-rules-link"
+                  href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setShowUserMenu(false)}
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-slate-700 hover:bg-slate-100 font-medium"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen size={13} className="text-indigo-600" />
+                    <span>Official OIML R-76 Rules</span>
+                  </div>
+                  <ExternalLink size={11} className="text-slate-400" />
+                </a>
                 <button
                   id="navbar-open-auth-btn"
                   onClick={() => {

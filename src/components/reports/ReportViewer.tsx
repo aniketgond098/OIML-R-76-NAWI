@@ -16,6 +16,7 @@ import { CalculationModal } from '../common/CalculationModal';
 import { generateTestReportPDF } from '../../services/export/pdfExport';
 import { generateTestReportDOCX } from '../../services/export/docxExport';
 import { CalculationExplanation } from '../../types/metrology';
+import { WeighWiseLogo } from '../common/WeighWiseLogo';
 import { calculateWeighingError } from '../../metrology/calculations/weighing';
 import { calculateRepeatability } from '../../metrology/calculations/repeatability';
 import { calculateEccentricityPosition } from '../../metrology/calculations/eccentricity';
@@ -204,10 +205,20 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
           </div>
         </div>
 
-        {/* Document Body */}
-        <div className="p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 text-xs text-slate-800">
+        {/* Document Body with Official WeighWise Watermark */}
+        <div className="relative p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 text-xs text-slate-800 overflow-hidden">
+          {/* Subtle Authentic Centered Watermark */}
+          <div
+            className="pointer-events-none select-none absolute inset-0 flex items-center justify-center z-0 opacity-[0.035] print:opacity-[0.05]"
+            aria-hidden="true"
+          >
+            <div className="flex flex-col items-center text-center max-w-xs">
+              <WeighWiseLogo variant="stacked" size="xl" showSubtitle={true} theme="dark" />
+            </div>
+          </div>
+
           {/* Section 1: Instrument Under Test */}
-          <div>
+          <div className="relative z-10">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 border-b border-slate-200 mb-3">
               1. Instrument Under Test (IUT) Specifications
             </h3>
@@ -327,10 +338,10 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
                     <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
                       <th className="p-2.5 pl-4">#</th>
                       <th className="p-2.5">Dir</th>
-                      <th className="p-2.5">Load ($L$)</th>
-                      <th className="p-2.5">Indication ($I$)</th>
-                      <th className="p-2.5">Turning Point ($\Delta L$)</th>
-                      <th className="p-2.5">Error ($E_c$)</th>
+                      <th className="p-2.5">Load (L)</th>
+                      <th className="p-2.5">Indication (I)</th>
+                      <th className="p-2.5">Turning Point (ΔL)</th>
+                      <th className="p-2.5">Error (Ec)</th>
                       <th className="p-2.5">MPE Limit</th>
                       <th className="p-2.5 text-center">Traceability</th>
                       <th className="p-2.5 pr-4 text-right">Result</th>

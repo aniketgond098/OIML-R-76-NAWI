@@ -10,6 +10,8 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
+  Header,
+  Footer,
 } from 'docx';
 import { TestReport } from '../../types/report';
 import { Laboratory } from '../../types/user';
@@ -22,7 +24,38 @@ export async function generateTestReportDOCX(report: TestReport, lab: Laboratory
     sections: [
       {
         properties: {},
+        headers: {
+          default: new Header({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.RIGHT,
+                children: [
+                  new TextRun({
+                    text: '⚖ WEIGHWISE METROLOGY • OIML R 76-1:2006 (E) VERIFIED SYSTEM',
+                    size: 15,
+                    color: '94A3B8',
+                    italics: true,
+                  }),
+                ],
+              }),
+            ],
+          }),
+        },
         children: [
+          // Official Watermark / System Banner
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 0, after: 150 },
+            children: [
+              new TextRun({
+                text: '— WEIGHWISE METROLOGY COMPLIANCE SYSTEM • OFFICIAL CERTIFIED REPORT —',
+                size: 15,
+                bold: true,
+                color: '0F766E',
+              }),
+            ],
+          }),
+
           // Header
           new Paragraph({
             alignment: AlignmentType.CENTER,

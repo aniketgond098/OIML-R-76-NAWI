@@ -11,6 +11,8 @@ import {
   CheckSquare,
   ShieldAlert,
   X,
+  QrCode,
+  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../../services/auth/authContext';
 
@@ -29,6 +31,7 @@ interface Props {
   onTabChange: (tab: MainNavTab) => void;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onOpenScanModal?: () => void;
 }
 
 export const Sidebar: React.FC<Props> = ({
@@ -36,6 +39,7 @@ export const Sidebar: React.FC<Props> = ({
   onTabChange,
   isMobileOpen = false,
   onCloseMobile,
+  onOpenScanModal,
 }) => {
   const { currentUser } = useAuth();
 
@@ -80,18 +84,18 @@ export const Sidebar: React.FC<Props> = ({
                   : 'text-slate-300 hover:text-white hover:bg-slate-800/80 active:bg-slate-800'
               }`}
             >
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-1">
                 <Icon
                   size={16}
                   className={`shrink-0 transition-colors ${
                     isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 />
-                <span className="truncate">{item.label}</span>
+                <span className="whitespace-nowrap truncate">{item.label}</span>
               </div>
               {item.badge && (
                 <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono shrink-0 ml-1.5 ${
                     isActive
                       ? 'bg-indigo-700 text-indigo-100'
                       : 'bg-slate-800 text-slate-400 border border-slate-700'
@@ -155,6 +159,41 @@ export const Sidebar: React.FC<Props> = ({
           <p className="text-[10px] text-slate-400 leading-relaxed">
             All MPE and verification scale calculations follow OIML Table 3/4 tolerances.
           </p>
+        </div>
+
+        {/* Mobile Quick Action Utilities */}
+        <div className="md:hidden space-y-2 pt-2 border-t border-slate-800">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 block font-mono">
+            Quick Tools
+          </span>
+          <div className="space-y-1">
+            {onOpenScanModal && (
+              <button
+                id="sidebar-scan-qr-btn"
+                onClick={() => {
+                  if (onCloseMobile) onCloseMobile();
+                  onOpenScanModal();
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-indigo-300 hover:text-white bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-800/40 transition-colors"
+              >
+                <QrCode size={15} className="text-indigo-400 shrink-0" />
+                <span>Scan Physical QR Code</span>
+              </button>
+            )}
+            <a
+              id="sidebar-official-rules-link"
+              href="https://www.oiml.org/en/publications/recommendations/en/files/pdf_r/r076-1-e06.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 border border-slate-700/60 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <BookOpen size={15} className="text-indigo-400 shrink-0" />
+                <span>Official OIML R-76 (PDF)</span>
+              </div>
+              <ExternalLink size={12} className="text-slate-400" />
+            </a>
+          </div>
         </div>
       </div>
 

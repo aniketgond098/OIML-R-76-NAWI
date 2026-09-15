@@ -34,6 +34,16 @@ export const AuditLogView: React.FC = () => {
     USER_LOGIN: 'bg-slate-100 text-slate-700 border-slate-200',
   };
 
+  const safeParse = (val: any) => {
+    if (!val) return undefined;
+    if (typeof val !== 'string') return val;
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  };
+
   return (
     <div id="audit-trail-view" className="p-3 sm:p-5 md:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-7xl mx-auto">
       {/* Header */}
@@ -155,8 +165,8 @@ export const AuditLogView: React.FC = () => {
                                 entityId: log.entityId,
                                 entityName: log.entityName,
                                 description: log.description,
-                                oldValue: log.oldValue ? JSON.parse(log.oldValue) : undefined,
-                                newValue: log.newValue ? JSON.parse(log.newValue) : undefined,
+                                oldValue: safeParse(log.oldValue),
+                                newValue: safeParse(log.newValue),
                                 reason: log.reason,
                               },
                               null,

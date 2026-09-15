@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable';
 import { TestReport } from '../../types/report';
 import { Laboratory } from '../../types/user';
 import { TestSession } from '../../types/testSession';
+import { attachWatermarkBackground } from './watermark';
 
 /**
  * Authoritative PDF Generation Service for OIML R 76-1:2006 (E) NAWI Test Reports.
@@ -14,6 +15,10 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
     unit: 'mm',
     format: 'a4',
   });
+
+  // Attach authentic WeighWise background watermark
+  // Ensures watermark is rendered on the page background BEFORE any report content is drawn
+  attachWatermarkBackground(doc);
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -354,10 +359,11 @@ export function generateTestReportPDF(report: TestReport, lab: Laboratory): void
   doc.text(`Approved: ${new Date(report.reviewerSignedAt || report.generatedAt).toLocaleString()}`, margin + colW + 5, y + 14.5);
   doc.text(`Approval Record: ${report.approvalRecord?.status || 'APPROVED & SEALED'}`, margin + colW + 5, y + 18.5);
 
-  // Footer on all pages
+  // Footer on all pages (Watermark is already rendered in the background on all pages)
   const pageCount = (doc.internal as any).getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+
     doc.setFontSize(6.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(148, 163, 184); // Slate 400
@@ -384,6 +390,10 @@ export function generateWorksheetPDF(session: TestSession, lab?: Laboratory): vo
     unit: 'mm',
     format: 'a4',
   });
+
+  // Attach authentic WeighWise background watermark
+  // Ensures watermark is rendered on the page background BEFORE any report content is drawn
+  attachWatermarkBackground(doc);
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -673,10 +683,11 @@ export function generateWorksheetPDF(session: TestSession, lab?: Laboratory): vo
   doc.text(`Completed: ${session.completedAt ? new Date(session.completedAt).toLocaleString() : 'In Progress'}`, margin + colW + 5, y + 14.5);
   doc.text('Signature: ___________________________', margin + colW + 5, y + 18.5);
 
-  // Footer on all pages
+  // Footer on all pages (Watermark is already rendered in the background on all pages)
   const pageCount = (doc.internal as any).getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+
     doc.setFontSize(6.5);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(148, 163, 184); // Slate 400

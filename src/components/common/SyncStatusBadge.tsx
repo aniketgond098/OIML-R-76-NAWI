@@ -185,8 +185,8 @@ export const SyncStatusBadge: React.FC = () => {
       >
         <span className={`w-2 h-2 rounded-full ${badge.dot} ${badge.pulse ? 'animate-ping' : ''}`} />
         <Icon size={13} className={badge.pulse ? 'animate-spin' : ''} />
-        <span className="hidden sm:inline">{badge.text}</span>
-        <span className="sm:hidden font-medium">
+        <span className="hidden xl:inline">{badge.text}</span>
+        <span className="xl:hidden font-medium">
           {status.isOnline
             ? status.pendingCount > 0
               ? `${status.pendingCount} sync`
@@ -210,7 +210,7 @@ export const SyncStatusBadge: React.FC = () => {
 
           <div
             id="sync-status-popover"
-            className="fixed inset-x-2.5 top-16 sm:inset-x-auto sm:right-3 md:right-6 sm:top-16 sm:w-[380px] md:w-[410px] max-w-[calc(100vw-20px)] sm:max-w-none bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-3 max-h-[80vh] overflow-y-auto"
+            className="fixed sm:absolute top-16 sm:top-full right-2 sm:right-0 mt-0 sm:mt-2 w-[calc(100vw-16px)] sm:w-[380px] md:w-[410px] max-w-[360px] sm:max-w-none bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 space-y-3 max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
