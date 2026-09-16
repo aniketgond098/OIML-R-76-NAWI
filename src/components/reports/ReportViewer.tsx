@@ -209,7 +209,7 @@ export const ReportViewer: React.FC<Props> = ({ reportId, onBack }) => {
         <div className="relative p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8 text-xs text-slate-800 overflow-hidden">
           {/* Subtle Authentic Centered Watermark */}
           <div
-            className="pointer-events-none select-none absolute inset-0 flex items-center justify-center z-0 opacity-[0.035] print:opacity-[0.05]"
+            className="pointer-events-none select-none absolute inset-0 flex items-center justify-center z-0 opacity-[0.065] print:opacity-[0.08]"
             aria-hidden="true"
           >
             <div className="flex flex-col items-center text-center max-w-xs">
