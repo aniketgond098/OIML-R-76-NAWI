@@ -137,6 +137,7 @@ function AppContent() {
 
   const handleTestSessionCreated = (session: TestSession) => {
     setIsStartingNewTestModalOpen(false);
+    setPreselectedInstrumentForNewTest(undefined);
     setSelectedTestSessionId(session.id);
     setActiveTab('testSessions');
     setIsMobileSidebarOpen(false);
@@ -308,7 +309,10 @@ function AppContent() {
       {/* Global Action Modals */}
       <NewTestSessionModal
         isOpen={isStartingNewTestModalOpen}
-        onClose={() => setIsStartingNewTestModalOpen(false)}
+        onClose={() => {
+          setIsStartingNewTestModalOpen(false);
+          setPreselectedInstrumentForNewTest(undefined);
+        }}
         onSessionCreated={handleTestSessionCreated}
         preselectedInstrumentId={preselectedInstrumentForNewTest}
       />

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { db } from '../../services/storage/database';
 import { useAuth } from '../../services/auth/authContext';
 import { TestSession } from '../../types/testSession';
-import { Scale, Play } from 'lucide-react';
+import { Scale, Play, AlertCircle } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -19,15 +19,37 @@ export const NewTestSessionModal: React.FC<Props> = ({
   preselectedInstrumentId,
 }) => {
   const { currentUser, availableUsers } = useAuth();
-  const instruments = db.getInstruments();
+  const [instruments, setInstruments] = useState(() => db.getInstruments());
   const technicians = availableUsers.filter((u) => u.role === 'LAB_TECHNICIAN' || u.role === 'ADMIN');
   const defaultTechId = currentUser.role === 'LAB_TECHNICIAN' 
     ? currentUser.id 
     : (technicians[0]?.id || currentUser.id);
 
-  const [selectedInstId, setSelectedInstId] = useState(preselectedInstrumentId || instruments[0]?.id || '');
+  const [selectedInstId, setSelectedInstId] = useState(preselectedInstrumentId || '');
   const [selectedTechId, setSelectedTechId] = useState(defaultTechId);
   const [sessionNotes, setSessionNotes] = useState('');
+
+  // Whenever the modal opens or the preselectedInstrumentId changes, refresh instruments and synchronize selection
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const freshInstruments = db.getInstruments();
+    setInstruments(freshInstruments);
+
+    // 1. If a preselected instrument ID is provided and exists in repository, select it
+    if (preselectedInstrumentId && freshInstruments.some((i) => i.id === preselectedInstrumentId)) {
+      setSelectedInstId(preselectedInstrumentId);
+    } 
+    // 2. Otherwise default to the first available instrument if current selection is invalid or empty
+    else if (!selectedInstId || !freshInstruments.some((i) => i.id === selectedInstId)) {
+      setSelectedInstId(freshInstruments[0]?.id || '');
+    }
+
+    // Default assigned technician
+    if (!selectedTechId || !availableUsers.some((u) => u.id === selectedTechId)) {
+      setSelectedTechId(defaultTechId);
+    }
+  }, [isOpen, preselectedInstrumentId, defaultTechId]);
 
   const selectedInst = instruments.find((i) => i.id === selectedInstId);
   const selectedTech = availableUsers.find((u) => u.id === selectedTechId) || currentUser;
@@ -49,17 +71,25 @@ export const NewTestSessionModal: React.FC<Props> = ({
       <div className="space-y-4 text-xs">
         <div>
           <label className="text-slate-700 font-bold block mb-1">Select Instrument Under Test *</label>
-          <select
-            value={selectedInstId}
-            onChange={(e) => setSelectedInstId(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-indigo-500"
-          >
-            {instruments.map((inst) => (
-              <option key={inst.id} value={inst.id}>
-                {inst.instrumentIdTag} — {inst.manufacturer} {inst.model} (Max: {inst.maxCapacity} {inst.unit}, e={inst.verificationScaleInterval} {inst.unit})
-              </option>
-            ))}
-          </select>
+          {instruments.length === 0 ? (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
+              <AlertCircle size={15} className="shrink-0 text-amber-600" />
+              <span>No weighing instruments registered. Please register an instrument first.</span>
+            </div>
+          ) : (
+            <select
+              id="select-instrument-under-test"
+              value={selectedInstId}
+              onChange={(e) => setSelectedInstId(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-indigo-500 bg-white"
+            >
+              {instruments.map((inst) => (
+                <option key={inst.id} value={inst.id}>
+                  {inst.instrumentIdTag} — {inst.manufacturer} {inst.model} (Max: {inst.maxCapacity} {inst.unit}, e={inst.verificationScaleInterval} {inst.unit})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {selectedInst && (

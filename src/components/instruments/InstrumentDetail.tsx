@@ -214,7 +214,15 @@ export const InstrumentDetail: React.FC<Props> = ({
           </div>
           <div className="divide-y divide-slate-100">
             {testSessions.length === 0 ? (
-              <p className="p-8 text-center text-xs text-slate-400">No test sessions recorded for this instrument yet.</p>
+              <div className="p-8 text-center space-y-3">
+                <p className="text-xs text-slate-400">No test sessions recorded for this instrument yet.</p>
+                <button
+                  onClick={() => onStartNewTest(inst.id)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors"
+                >
+                  <Play size={13} /> Start Test Session
+                </button>
+              </div>
             ) : (
               testSessions.map((s) => (
                 <div
